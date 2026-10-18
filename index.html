@@ -4,28 +4,135 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>Pages</title>
+<title>Home panel</title>
+<link rel="stylesheet" href="assets/site.css">
+<script src="assets/d3.min.js"></script>
+<script src="assets/kit.js"></script>
 <style>
-  :root { --bg:#fbfaf7; --fg:#26241f; --muted:#6d6a62; --line:#e4e1d8; --accent:#2f6f5e; }
-  @media (prefers-color-scheme: dark) { :root { --bg:#191816; --fg:#ece9e2; --muted:#a19d94; --line:#34322d; --accent:#7cc4ad; } }
-  * { box-sizing: border-box; }
-  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.5 -apple-system, "Segoe UI", system-ui, sans-serif; }
-  main { max-width:640px; margin:0 auto; padding:56px 16px; }
-  h1 { font-family: Georgia, "Times New Roman", serif; font-weight:400; font-size:2rem; margin:0 0 4px; }
-  p.lead { color:var(--muted); margin:0 0 32px; }
-  a.card { display:block; padding:18px 20px; border:1px solid var(--line); border-radius:10px; text-decoration:none; color:inherit; margin-bottom:12px; }
-  a.card:hover { border-color:var(--accent); }
-  a.card b { display:block; font-weight:600; }
-  a.card span { color:var(--muted); font-size:.92rem; }
+  .hello { font: 700 clamp(2.4rem, 7vw, 4.4rem)/.95 var(--display); font-stretch: 78%; letter-spacing: -.025em; margin: 8px 0 12px; max-width: 14ch; }
+  .sub { color: var(--graphite); font-size: 1.05rem; margin: 0 0 32px; max-width: 58ch; }
+  .meters { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr)); gap: 18px; }
+  .meter { --c: var(--ink); position: relative; display: flex; flex-direction: column; gap: 14px; text-decoration: none; background: var(--panel); border: 1px solid var(--rule); border-radius: 20px; padding: 22px 22px 18px; box-shadow: var(--shadow); overflow: hidden; transition: transform .18s ease, border-color .18s; }
+  .meter::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 5px; background: var(--c); }
+  .meter:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--c) 45%, var(--rule)); }
+  .meter .name { display: flex; justify-content: space-between; align-items: center; font-weight: 600; }
+  .meter .name span:last-child { color: var(--graphite); font-weight: 400; font-size: .88rem; }
+  .dial { display: flex; gap: 4px; }
+  .dial .d { flex: 1 1 0; max-width: 48px; height: 64px; border-radius: 9px; background: var(--ink); color: var(--paper); font: 650 2.4rem/64px var(--display); font-stretch: 75%; text-align: center; overflow: hidden; position: relative; font-variant-numeric: tabular-nums; }
+  .dial .d.sep { flex: 0 0 auto; width: 14px; background: none; color: var(--ink); }
+  .dial .d.last { background: var(--c); color: var(--ink); }
+  .dial .d span { display: block; }
+  .unit { font-size: .9rem; color: var(--graphite); margin-top: -6px; }
+  .meter .line { font-size: .92rem; border-top: 1px dashed var(--rule); padding-top: 12px; color: var(--ink); }
+  .meter .line .up { font-weight: 600; } .meter .line .down { font-weight: 600; }
+  .spark { height: 44px; }
+  .spark svg { display: block; width: 100%; height: 44px; }
 </style>
 </head>
 <body>
-<main>
-  <h1>Pages</h1>
-  <p class="lead">Private pages, opened by direct link.</p>
-  <a class="card" href="energy/"><b>Energy usage</b><span>Electricity use and cost from the smart meter, updated every morning.</span></a>
-  <a class="card" href="water/"><b>Water usage</b><span>Litres per day and cost from the smart water meter.</span></a>
-  <a class="card" href="vouchers/"><b>Vouchers</b><span>Gift cards and vouchers still to use, and when they expire.</span></a>
+<main class="page">
+  <p class="hello" id="hello">Good evening, Mo.</p>
+  <p class="sub" id="sub">Your meters, read every morning. Tap one to dig in.</p>
+
+  <section class="meters" aria-label="Meters">
+    <a class="meter" href="energy/" style="--c: var(--volt)">
+      <div class="name"><span>Electricity this month</span><span id="eDays"></span></div>
+      <div class="dial" id="eDial" aria-hidden="true"></div>
+      <div class="unit" id="eUnit">kWh</div>
+      <div class="spark" id="eSpark"></div>
+      <div class="line" id="eLine">Loading…</div>
+    </a>
+    <a class="meter" href="water/" style="--c: var(--flow)">
+      <div class="name"><span>Water this month</span><span id="wDays"></span></div>
+      <div class="dial" id="wDial" aria-hidden="true"></div>
+      <div class="unit" id="wUnit">litres</div>
+      <div class="spark" id="wSpark"></div>
+      <div class="line" id="wLine">Loading…</div>
+    </a>
+    <a class="meter" href="vouchers/" style="--c: var(--brass)">
+      <div class="name"><span>Vouchers to spend</span><span id="vCount"></span></div>
+      <div class="dial" id="vDial" aria-hidden="true"></div>
+      <div class="unit">pounds</div>
+      <div id="vSpark"></div>
+      <div class="line" id="vLine">Loading…</div>
+    </a>
+  </section>
+  <p class="foot">Private pages, opened by direct link. Search engines are asked not to list them.</p>
 </main>
+<script>
+kit.nav('Home', './');
+(async () => {
+  const $ = id => document.getElementById(id), { fmt } = kit;
+  const h = new Date().getHours();
+  $('hello').textContent = (h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening') + ', Mo.';
+
+  // rolling meter digits
+  function dial(el, value, digits, label) {
+    el.parentElement.setAttribute('aria-label', label);
+    const s = String(Math.round(value)).padStart(digits, '0').slice(-digits);
+    el.innerHTML = '';
+    [...s].forEach((ch, i) => {
+      const d = document.createElement('div'); d.className = 'd' + (i === s.length - 1 ? ' last' : '');
+      const col = document.createElement('span'); col.innerHTML = Array.from({ length: 10 }, (_, k) => k).concat([+ch]).map(k => `<span>${k}</span>`).join('');
+      d.append(col); el.append(d);
+      if (kit.reduce) { col.style.transform = `translateY(-${10 * 64}px)`; return; }
+      col.style.transform = 'translateY(0)';
+      col.animate([{ transform: 'translateY(0)' }, { transform: `translateY(-${10 * 64}px)` }],
+        { duration: 900 + i * 180, easing: 'cubic-bezier(.2,.75,.2,1)', fill: 'forwards' });
+    });
+  }
+  function spark(el, vals, color) {
+    const W = 300, H = 44, x = d3.scaleLinear([0, vals.length - 1], [2, W - 2]), y = d3.scaleLinear([0, d3.max(vals) || 1], [H - 3, 3]);
+    const svg = d3.select(el).append('svg').attr('viewBox', `0 0 ${W} ${H}`).attr('preserveAspectRatio', 'none');
+    svg.append('path').attr('d', d3.area().x((_, i) => x(i)).y0(H).y1(y)(vals)).attr('fill', color).attr('opacity', .14);
+    svg.append('path').attr('d', d3.line().x((_, i) => x(i)).y(y)(vals)).attr('fill', 'none').attr('stroke', color).attr('stroke-width', 2).attr('vector-effect', 'non-scaling-stroke').attr('stroke-linejoin', 'round');
+  }
+  const span = (cls, t) => Object.assign(document.createElement('span'), { className: cls, textContent: t });
+
+  try {
+    const [ed, em, es] = await kit.load(['energy/data/daily.csv', 'energy/data/monthly.csv', 'energy/data/summary.json']);
+    const cur = em[em.length - 1];
+    dial($('eDial'), cur.kwh, 4, fmt.int(cur.kwh) + ' kilowatt hours this month');
+    $('eDays').textContent = cur.period.replace(' so far', '');
+    spark($('eSpark'), ed.slice(-31).map(r => r.kwh), kit.css('--volt'));
+    const wkc = (es.last_week_gbp - es.week_before_gbp) / es.week_before_gbp;
+    $('eLine').replaceChildren(fmt.gbp(cur.total_gbp) + ' so far. Last 7 days ', span(wkc > 0 ? 'up' : 'down', (wkc > 0 ? 'up ' : 'down ') + fmt.pct(Math.abs(wkc))), '.');
+  } catch (e) { $('eLine').textContent = 'Energy readings could not be loaded.'; }
+
+  try {
+    const [wd, wm, ws] = await kit.load(['water/daily.csv', 'water/monthly.csv', 'water/summary.json']);
+    const cur = wm[wm.length - 1];
+    dial($('wDial'), cur.litres, 5, fmt.int(cur.litres) + ' litres this month');
+    $('wDays').textContent = cur.period.replace(' so far', '');
+    spark($('wSpark'), wd.slice(-31).map(r => r.litres), kit.css('--flow'));
+    const home = wd.filter(r => r.litres > 5).slice(-30), avg = d3.mean(home, r => r.litres), ref = ws.benchmark_lpd * ws.people;
+    $('wLine').replaceChildren(fmt.gbp(cur.cost_gbp) + ' so far. About ' + fmt.int(avg) + ' L a day, ', span(avg > ref ? 'up' : 'down', d3.format('.1f')(avg / ref) + '× the target'), '.');
+  } catch (e) { $('wLine').textContent = 'Water readings could not be loaded.'; }
+
+  try {
+    const [vj] = await kit.load(['vouchers/vouchers.json']);
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const live = vj.vouchers.filter(v => v.status !== 'used' && v.status !== 'pending' && !(v.expires && new Date(v.expires) < today));
+    const total = d3.sum(live, v => v.value_gbp);
+    dial($('vDial'), total, 3, fmt.gbp0(total) + ' in vouchers to spend');
+    $('vCount').textContent = live.length + ' in hand';
+    const dated = live.filter(v => v.expires).sort((a, b) => a.expires.localeCompare(b.expires));
+    // one strip, a segment per voucher sized by value, coloured by how soon it runs out
+    const strip = document.createElement('div'); strip.style.cssText = 'display:flex;gap:3px;height:16px;margin-top:14px';
+    [...dated, ...live.filter(v => !v.expires)].forEach(v => {
+      const d = v.expires ? Math.round((new Date(v.expires) - today) / 864e5) : null;
+      const seg = document.createElement('i'); seg.title = v.brand + ' ' + fmt.gbp0(v.value_gbp);
+      seg.style.cssText = `flex:${v.value_gbp} 1 0;border-radius:5px;background:${d !== null && d <= 30 ? kit.css('--bad') : d === null ? kit.css('--away') : kit.css('--brass')}`;
+      strip.append(seg);
+    });
+    $('vSpark').append(strip);
+    const cap = document.createElement('div'); cap.className = 'unit'; cap.style.marginTop = '8px'; cap.textContent = 'Red runs out within 30 days · grey has no date yet'; $('vSpark').append(cap);
+    if (dated.length) {
+      const n = dated[0], days = Math.round((new Date(n.expires) - today) / 864e5);
+      $('vLine').replaceChildren(n.brand + ' ' + fmt.gbp0(n.value_gbp) + ' ', span(days <= 30 ? 'up' : 'down', days <= 0 ? 'expires today' : 'expires in ' + days + ' days'), n.expiry_confirmed ? '.' : ' (check the date).');
+    } else $('vLine').textContent = 'Nothing expiring soon.';
+  } catch (e) { $('vLine').textContent = 'Vouchers could not be loaded.'; }
+})();
+</script>
 </body>
 </html>

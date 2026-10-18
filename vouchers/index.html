@@ -4,94 +4,84 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>Vouchers</title>
+<title>Vouchers · Home panel</title>
+<link rel="stylesheet" href="../assets/site.css">
+<script src="../assets/d3.min.js"></script>
+<script src="../assets/kit.js"></script>
 <style>
-  :root { --bg:#fbfaf7; --panel:#ffffff; --fg:#26241f; --muted:#6d6a62; --line:#e4e1d8; --accent:#2f6f5e; --warn:#a8641c; --bad:#b4472f; }
-  @media (prefers-color-scheme: dark) {
-    :root { --bg:#191816; --panel:#22211e; --fg:#ece9e2; --muted:#a19d94; --line:#34322d; --accent:#7cc4ad; --warn:#e0a35e; --bad:#e3876f; } }
-  * { box-sizing:border-box; }
-  body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.5 -apple-system, "Segoe UI", system-ui, sans-serif; }
-  main { max-width:860px; margin:0 auto; padding:32px 16px 56px; }
-  a.back { color:var(--muted); text-decoration:none; font-size:.9rem; }
-  h1 { font-family: Georgia, "Times New Roman", serif; font-weight:400; font-size:2rem; margin:4px 0 0; }
-  .take { color:var(--muted); margin:6px 0 24px; }
-  .tiles { display:grid; grid-template-columns:repeat(auto-fit, minmax(min(100%, 11rem), 1fr)); gap:12px; margin-bottom:24px; }
-  .tile { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px; }
-  .lab { font-size:.82rem; color:var(--muted); }
-  .big { font-family: Georgia, "Times New Roman", serif; font-size:1.8rem; margin-top:2px; font-variant-numeric:tabular-nums; }
-  .v { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px 18px; margin-bottom:10px; display:grid; grid-template-columns:1fr auto; gap:4px 16px; }
-  .v h3 { margin:0; font-size:1.02rem; font-weight:600; }
-  .v .amt { font-family: Georgia, serif; font-size:1.3rem; text-align:right; font-variant-numeric:tabular-nums; }
-  .v .meta, .v .note { grid-column:1 / -1; font-size:.86rem; color:var(--muted); }
-  .v .note { color:var(--fg); }
-  .pill { display:inline-block; font-size:.75rem; padding:1px 8px; border-radius:999px; border:1px solid currentColor; margin-left:6px; vertical-align:2px; }
-  .soon { color:var(--bad); } .check { color:var(--warn); } .ok { color:var(--accent); } .pending { color:var(--muted); }
-  h2 { font-size:.9rem; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); font-weight:600; margin:28px 0 10px; }
-  .foot { font-size:.8rem; color:var(--muted); margin-top:24px; }
+  .list { display: grid; gap: 12px; margin-top: 16px; }
+  .vc { display: grid; grid-template-columns: 1fr auto; gap: 6px 18px; align-items: start; background: var(--panel); border: 1px solid var(--rule); border-left: 5px solid var(--st); border-radius: 14px; padding: 16px 18px; box-shadow: var(--shadow); }
+  .vc h3 { margin: 0; font: 650 1.15rem/1.2 var(--display); font-stretch: 90%; }
+  .vc .amt { font: 650 1.7rem/1 var(--display); font-stretch: 80%; font-variant-numeric: tabular-nums; text-align: right; }
+  .vc .meta { grid-column: 1 / -1; color: var(--graphite); font-size: .88rem; }
+  .vc .note { grid-column: 1 / -1; font-size: .92rem; }
+  .vc .when { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; font-size: .84rem; color: var(--graphite); }
+  .bar2 { flex: 1; height: 6px; border-radius: 99px; background: var(--grid); overflow: hidden; }
+  .bar2 i { display: block; height: 100%; background: var(--st); border-radius: 99px; }
+  .pill { display: inline-block; font: 500 .76rem/1 var(--body); padding: 4px 9px; border-radius: 99px; background: color-mix(in srgb, var(--st) 16%, transparent); color: var(--st); margin-left: 8px; vertical-align: 3px; }
+  .s-soon { --st: var(--bad); } .s-check { --st: var(--volt); } .s-ok { --st: var(--good); } .s-pending { --st: var(--graphite); }
 </style>
 </head>
 <body>
-<main>
-  <a class="back" href="../">← Pages</a>
-  <h1>Vouchers</h1>
-  <p class="take" id="take">Loading…</p>
-  <div class="tiles">
-    <div class="tile"><div class="lab">Unused value</div><div class="big" id="total">—</div></div>
-    <div class="tile"><div class="lab">Next to expire</div><div class="big" id="next">—</div><div class="lab" id="nextwhat"></div></div>
-    <div class="tile"><div class="lab">Still to claim</div><div class="big" id="pend">—</div></div>
-  </div>
-  <div id="list"></div>
+<main class="page">
+  <section class="head">
+    <h1>Vouchers</h1>
+    <p id="take">Loading…</p>
+  </section>
+  <section class="stats" aria-label="Summary">
+    <div class="stat"><div class="k">To spend</div><div class="v" id="total">—</div><div class="s" id="totalS">&nbsp;</div></div>
+    <div class="stat"><div class="k">Next to expire</div><div class="v" id="next">—</div><div class="s" id="nextS">&nbsp;</div></div>
+    <div class="stat"><div class="k">Still to arrive</div><div class="v" id="pend">—</div><div class="s" id="pendS">&nbsp;</div></div>
+  </section>
+  <div class="panel-head"><h2>Your vouchers</h2><div id="filter"></div></div>
+  <div class="list" id="list"></div>
   <p class="foot" id="foot"></p>
 </main>
 <script>
+kit.nav('Vouchers', '../');
 (async () => {
-  const fmt = v => '£' + v.toFixed(2);
-  const dfmt = s => new Date(s + 'T12:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  const $ = id => document.getElementById(id), { fmt } = kit;
   const today = new Date(); today.setHours(0, 0, 0, 0);
   const days = s => Math.round((new Date(s + 'T00:00:00') - today) / 864e5);
+  const dfmt = s => d3.timeFormat('%-d %b %Y')(new Date(s + 'T12:00:00'));
   let data;
-  try { data = await (await fetch('vouchers.json?v=' + Date.now())).json(); }
-  catch (e) { document.getElementById('take').textContent = 'Could not load the voucher list.'; return; }
+  try { [data] = await kit.load(['vouchers.json']); }
+  catch (e) { $('take').textContent = 'The voucher list could not be loaded. Try refreshing the page.'; $('take').className = 'err'; return; }
   const all = data.vouchers.filter(v => v.status !== 'used' && !(v.expires && days(v.expires) < 0));
-  const have = all.filter(v => v.status !== 'pending');
-  const pend = all.filter(v => v.status === 'pending');
+  const have = all.filter(v => v.status !== 'pending'), pend = all.filter(v => v.status === 'pending');
   const dated = have.filter(v => v.expires).sort((a, b) => a.expires.localeCompare(b.expires));
-  document.getElementById('total').textContent = fmt(have.reduce((s, v) => s + v.value_gbp, 0));
-  document.getElementById('pend').textContent = fmt(pend.reduce((s, v) => s + v.value_gbp, 0));
-  if (dated.length) {
-    const n = dated[0], d = days(n.expires);
-    document.getElementById('next').textContent = d <= 0 ? 'Today' : d + (d === 1 ? ' day' : ' days');
-    document.getElementById('nextwhat').textContent = n.brand + ' · ' + fmt(n.value_gbp) + ' · ' + dfmt(n.expires) + (n.expiry_confirmed ? '' : ' (to check)');
-  }
+  kit.countUp($('total'), d3.sum(have, v => v.value_gbp), fmt.gbp); $('totalS').textContent = have.length + ' vouchers and gift cards';
+  kit.countUp($('pend'), d3.sum(pend, v => v.value_gbp), fmt.gbp); $('pendS').textContent = pend.length + ' rewards signed up for';
+  if (dated.length) { const n = dated[0], d = days(n.expires); $('next').textContent = d <= 0 ? 'Today' : d + (d === 1 ? ' day' : ' days'); $('nextS').textContent = n.brand + ' ' + fmt.gbp0(n.value_gbp) + (n.expiry_confirmed ? '' : ' · date to check'); }
   const soon = dated.filter(v => days(v.expires) <= 30);
-  document.getElementById('take').textContent = soon.length
-    ? `${soon.length === 1 ? 'One voucher' : soon.length + ' vouchers'} may expire in the next 30 days. Codes stay in your email; this page only tracks what you have and when to use it.`
-    : 'Nothing expires in the next 30 days. Codes stay in your email; this page only tracks what you have and when to use it.';
+  $('take').textContent = (soon.length ? (soon.length === 1 ? 'One voucher' : soon.length + ' vouchers') + ' may run out in the next 30 days. ' : 'Nothing runs out in the next 30 days. ') + 'Codes stay in your email; this page tracks what you have and when to use it.';
 
-  const list = document.getElementById('list');
-  const card = v => {
-    const el = document.createElement('div'); el.className = 'v';
-    const h = document.createElement('h3'); h.textContent = v.brand;
-    let cls, label;
-    if (v.status === 'pending') { cls = 'pending'; label = 'not received yet'; }
-    else if (v.expires && days(v.expires) <= 30) { cls = 'soon'; label = 'use soon'; }
-    else if (v.status === 'check' || (!v.expires)) { cls = 'check'; label = 'check expiry'; }
-    else { cls = 'ok'; label = 'unused'; }
-    const p = document.createElement('span'); p.className = 'pill ' + cls; p.textContent = label; h.appendChild(p);
-    const a = document.createElement('div'); a.className = 'amt'; a.textContent = fmt(v.value_gbp);
-    const m = document.createElement('div'); m.className = 'meta';
-    m.textContent = v.status === 'pending'
-      ? v.type + ' · signed up ' + dfmt(v.received) + ' · ' + v.where
-      : v.type + ' · received ' + dfmt(v.received) + ' · ' +
-        (v.expires ? 'expires ' + dfmt(v.expires) + (v.expiry_confirmed ? '' : ' (estimated)') : 'expiry unknown') + ' · ' + v.where;
-    const n = document.createElement('div'); n.className = 'note'; n.textContent = v.note || '';
-    el.append(h, a, m, n); return el;
+  const state = v => v.status === 'pending' ? ['s-pending', 'Waiting to arrive'] : v.expires && days(v.expires) <= 30 ? ['s-soon', 'Use soon'] : (!v.expires || v.status === 'check') ? ['s-check', 'Check expiry'] : ['s-ok', 'Unused'];
+  const render = f => {
+    const list = $('list'); list.innerHTML = '';
+    const items = f === 'pending' ? pend : f === 'have' ? [...dated, ...have.filter(v => !v.expires)] : [...dated, ...have.filter(v => !v.expires), ...pend];
+    if (!items.length) { list.textContent = 'Nothing here right now.'; return; }
+    items.forEach(v => {
+      const [cls, label] = state(v), el = document.createElement('article'); el.className = 'vc ' + cls;
+      const h = document.createElement('h3'); h.textContent = v.brand; h.append(Object.assign(document.createElement('span'), { className: 'pill', textContent: label }));
+      const a = document.createElement('div'); a.className = 'amt'; a.textContent = fmt.gbp(v.value_gbp);
+      const m = document.createElement('div'); m.className = 'meta'; m.textContent = v.type + ' · ' + (v.status === 'pending' ? 'signed up ' : 'received ') + dfmt(v.received) + ' · ' + v.where;
+      const n = document.createElement('div'); n.className = 'note'; n.textContent = v.note || '';
+      el.append(h, a, m, n);
+      if (v.expires && v.status !== 'pending') {
+        const total = Math.max(1, (new Date(v.expires) - new Date(v.received)) / 864e5), left = Math.max(0, days(v.expires));
+        const w = document.createElement('div'); w.className = 'when';
+        w.innerHTML = '<span></span><div class="bar2" role="presentation"><i></i></div><span></span>';
+        w.children[0].textContent = 'Time left'; w.children[2].textContent = (v.expiry_confirmed ? 'Expires ' : 'Probably expires ') + dfmt(v.expires);
+        w.querySelector('i').style.width = Math.min(100, left / total * 100) + '%';
+        el.append(w);
+      }
+      list.append(el);
+    });
   };
-  const section = (title, items) => { if (!items.length) return; const h = document.createElement('h2'); h.textContent = title; list.appendChild(h); items.forEach(v => list.appendChild(card(v))); };
-  const undated = have.filter(v => !v.expires);
-  section('In hand', [...dated, ...undated]);
-  section('Waiting to receive', pend);
-  document.getElementById('foot').textContent = 'Updated ' + dfmt(data.updated) + '. Used or expired vouchers drop off automatically.';
+  kit.seg($('filter'), [['all', 'All'], ['have', 'In hand'], ['pending', 'Waiting']], 'all', render);
+  render('all');
+  $('foot').textContent = 'Updated ' + dfmt(data.updated) + ' from your email. Used or expired vouchers drop off automatically.';
 })();
 </script>
 </body>
