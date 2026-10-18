@@ -1,0 +1,11 @@
+{
+ "updated": "2026-10-18",
+ "vouchers": [
+  {"brand": "Love2shop", "type": "e-gift card(s)", "value_gbp": 60.00, "received": "2025-11-16", "expires": "2026-11-16", "expiry_confirmed": false, "status": "check", "where": "Gmail: 'Here are your e-gift cards from Love2shop' (16 Nov 2025) – collect link", "note": "Love2shop cards usually last 6–12 months from issue. Check the date on the card; if 12 months, use it by 16 Nov."},
+  {"brand": "George.com (Asda)", "type": "eVoucher", "value_gbp": 5.00, "received": "2026-09-08", "expires": null, "expiry_confirmed": false, "status": "unused", "where": "Gmail: 'Your George.com eVoucher' (8 Sep 2026)", "note": "Online only, one per order. The email doesn't give the expiry – add it in your George account to see it."},
+  {"brand": "Amazon.co.uk", "type": "gift card (iD Mobile reward)", "value_gbp": 15.00, "received": "2026-09-23", "expires": "2036-09-23", "expiry_confirmed": false, "status": "unused", "where": "Gmail: 'Your iD Mobile reward' (23 Sep 2026) – PDF attached", "note": "Amazon UK gift cards last 10 years. Add it to your Amazon account so it can't be lost."},
+  {"brand": "Love2shop", "type": "virtual prepaid Mastercard", "value_gbp": 80.00, "received": "2025-09-05", "expires": null, "expiry_confirmed": false, "status": "check", "where": "Love2shop account", "note": "Loaded with £80 in Sep 2025. Check your Love2shop account for any remaining balance and its expiry."},
+  {"brand": "iD Mobile reward", "type": "gift card (not yet received)", "value_gbp": 41.50, "received": "2026-07-07", "expires": null, "expiry_confirmed": false, "status": "pending", "where": "Gmail: 'iD Mobile reward sign-up confirmed' (7 Jul 2026)", "note": "Signed up, but no 'reward is ready' email has arrived. Once it does, you have 90 days to claim it."},
+  {"brand": "iD Mobile reward", "type": "gift card (not yet received)", "value_gbp": 26.00, "received": "2026-02-03", "expires": null, "expiry_confirmed": false, "status": "pending", "where": "Gmail: 'iD Mobile reward sign-up confirmed' (3 Feb 2026)", "note": "Signed up, but no 'reward is ready' email has arrived – may be worth chasing with Giftcloud support."}
+ ]
+}
