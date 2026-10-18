@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Water usage</title>
+<script src="../energy/d3.min.js"></script>
+<style>
+  :root { --bg:#fbfaf7; --panel:#ffffff; --fg:#26241f; --muted:#6d6a62; --line:#e4e1d8; --grid:#eeece6;
+          --water:#2f6c9e; --away:#cfccc3; --ref:#b4472f; --ok:#2f7a4a; --bad:#b4472f; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#191816; --panel:#22211e; --fg:#ece9e2; --muted:#a19d94; --line:#34322d; --grid:#2c2a26;
+            --water:#79b0dc; --away:#4a4741; --ref:#e3876f; --ok:#79c08f; --bad:#e3876f; } }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.5 -apple-system, "Segoe UI", system-ui, sans-serif; }
+  main { max-width:1080px; margin:0 auto; padding:32px 16px 56px; display:flex; flex-direction:column; gap:20px; }
+  a.back { color:var(--muted); text-decoration:none; font-size:.9rem; }
+  h1 { font-family: Georgia, "Times New Roman", serif; font-weight:400; font-size:2rem; margin:4px 0 0; }
+  .take { color:var(--muted); margin:6px 0 0; max-width:56rem; }
+  .tiles { display:grid; grid-template-columns:repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap:12px; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:18px; min-width:0; }
+  .lab, .sub, .note, .legend { font-size:.82rem; color:var(--muted); }
+  .big { font-family: Georgia, "Times New Roman", serif; font-size:1.9rem; margin:4px 0; font-variant-numeric:tabular-nums; }
+  .ok { color:var(--ok); } .bad { color:var(--bad); }
+  .grid2 { display:grid; grid-template-columns:repeat(auto-fit, minmax(min(100%, 24rem), 1fr)); gap:12px; }
+  .wide { grid-column:1 / -1; }
+  h2 { font-size:1.05rem; font-weight:600; margin:0; }
+  .note { margin:4px 0 12px; }
+  .chart { position:relative; min-height:240px; }
+  .legend { display:flex; gap:14px; flex-wrap:wrap; margin-top:8px; }
+  .sw { display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:5px; vertical-align:middle; }
+  .dash { display:inline-block; width:14px; border-top:2px dashed var(--ref); margin-right:5px; vertical-align:middle; }
+  .tip { position:absolute; display:none; pointer-events:none; background:var(--panel); border:1px solid var(--line); border-radius:8px;
+         box-shadow:0 4px 14px rgba(0,0,0,.12); padding:6px 9px; font-size:.8rem; white-space:nowrap; z-index:2; }
+  .tip .d { color:var(--muted); }
+  table { width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
+  th, td { text-align:left; padding:6px 8px; border-bottom:1px solid var(--line); }
+  th { font-size:.8rem; color:var(--muted); font-weight:600; }
+  .n { text-align:right; }
+  .err { color:var(--bad); }
+</style>
+</head>
+<body>
+<main>
+  <div>
+    <a class="back" href="../">← Pages</a>
+    <h1>Water usage</h1>
+    <p class="take" id="takeaway">Loading…</p>
+  </div>
+
+  <div class="tiles">
+    <div class="card"><div class="lab">Average per day · last 30 days at home</div><div class="big" id="avg">—</div><div class="sub" id="avgvs">—</div></div>
+    <div class="card"><div class="lab">This month so far</div><div class="big" id="mtd">—</div><div class="sub" id="mtdproj">—</div></div>
+    <div class="card"><div class="lab">Direct debit</div><div class="big" id="dd">—</div><div class="sub" id="ddnote">—</div></div>
+    <div class="card"><div class="lab">Last 7 days</div><div class="big" id="wk">—</div><div class="sub" id="wkchg">—</div></div>
+  </div>
+
+  <div class="grid2">
+    <div class="card wide"><h2>Daily usage</h2>
+      <p class="note">Litres per day from the smart meter. Grey days are when you were away (no use). The dashed line is England's target per person.</p>
+      <div class="chart" id="dchart"></div>
+      <div class="legend"><span><i class="sw" style="background:var(--water)"></i>Litres</span><span><i class="dash"></i><span id="reflab">Target</span></span></div>
+    </div>
+    <div class="card"><h2>Monthly cost</h2>
+      <p class="note">£ for water and sewerage used, excluding standing charges. The current month is partial.</p>
+      <div class="chart" id="mchart"></div>
+    </div>
+    <div class="card"><h2>By month</h2>
+      <table><thead><tr><th>Month</th><th class="n">Litres</th><th class="n">Per day</th><th class="n">Cost</th></tr></thead><tbody id="mt"></tbody></table>
+      <p class="note" id="updated" style="margin-top:12px"></p>
+    </div>
+  </div>
+</main>
+<script>
+(async () => {
+  const $ = id => document.getElementById(id), set = (id, t) => { $(id).textContent = t; };
+  const gbp = v => '£' + d3.format(',.2f')(v), L = v => d3.format(',.0f')(v) + ' L';
+  let daily, monthly, s;
+  try {
+    const v = '?v=' + Date.now();
+    [daily, monthly, s] = await Promise.all([d3.csv('daily.csv' + v, d3.autoType), d3.csv('monthly.csv' + v, d3.autoType), d3.json('summary.json' + v)]);
+  } catch (e) { $('takeaway').textContent = 'Could not load the data.'; $('takeaway').className = 'take err'; return; }
+
+  const home = daily.filter(r => r.litres > 5);
+  const last30 = home.slice(-30), avg = d3.mean(last30, r => r.litres);
+  const ref = s.benchmark_lpd * s.people;
+  set('avg', L(avg));
+  $('avgvs').textContent = d3.format('.1f')(avg / ref) + '× the ' + ref + ' L target for ' + s.people + (s.people === 1 ? ' person' : ' people');
+  $('avgvs').className = 'sub ' + (avg > ref ? 'bad' : 'ok');
+
+  const cur = monthly[monthly.length - 1], lastDay = new Date(s.latest_day);
+  const dim = new Date(lastDay.getFullYear(), lastDay.getMonth() + 1, 0).getDate();
+  const proj = cur.cost_gbp / lastDay.getDate() * dim;
+  set('mtd', gbp(cur.cost_gbp));
+  set('mtdproj', 'On track for about ' + gbp(proj) + ' this month, plus standing charges');
+  set('dd', gbp(s.direct_debit_gbp)); set('ddnote', s.direct_debit_note);
+
+  const l7 = daily.slice(-7), p7 = daily.slice(-14, -7);
+  const w7 = d3.sum(l7, r => r.litres), wp = d3.sum(p7, r => r.litres), chg = (w7 - wp) / wp;
+  set('wk', L(w7));
+  $('wkchg').textContent = (chg > 0 ? '+' : '−') + d3.format('.0%')(Math.abs(chg)) + ' vs the 7 days before';
+  $('wkchg').className = 'sub ' + (chg > 0 ? 'bad' : 'ok');
+  set('reflab', ref + ' L/day target (' + s.benchmark_note + ')');
+
+  const big = d3.greatest(daily, r => r.litres);
+  set('takeaway', `You've used about ${L(avg)} a day over your last 30 days at home, roughly ${d3.format('.1f')(avg / ref)}× England's ${ref}-litre target for one person. ` +
+    `Your biggest day was ${d3.timeFormat('%-d %b')(big.date)} at ${L(big.litres)}. Water drops to zero when you're away, so there's no sign of a constant leak.`);
+
+  const tb = $('mt');
+  monthly.forEach(r => {
+    const mk = r.month instanceof Date ? d3.utcFormat('%Y-%m')(r.month) : String(r.month);
+    const days = daily.filter(d => d3.utcFormat('%Y-%m')(d.date) === mk && d.litres > 5).length;
+    const tr = tb.insertRow();
+    [r.label, d3.format(',')(r.litres), days ? L(r.litres / days) : '—', gbp(r.cost_gbp)].forEach((t, i) => { const c = tr.insertCell(); c.textContent = t; if (i) c.className = 'n'; });
+  });
+  set('updated', 'Updated ' + d3.timeFormat('%-d %b %Y, %H:%M')(new Date(s.read_at)) + ' · latest full day ' + d3.timeFormat('%-d %b')(new Date(s.latest_day)) + ' · ' + s.source);
+
+  function bars(el, rows, val, xl, yf, tipLines, colorOf, refLine) {
+    el.innerHTML = '';
+    const W = Math.max(280, el.clientWidth), H = 240;
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+    const tip = d3.select(el).append('div').attr('class', 'tip');
+    const y = d3.scaleLinear([0, Math.max(d3.max(rows, val), refLine || 0) * 1.1], [H - 24, 8]).nice();
+    const ticks = y.ticks(4);
+    const t = svg.append('text').attr('font-size', 11).text(yf(d3.max(ticks)));
+    const ml = t.node().getComputedTextLength() + 10; t.remove();
+    const x = d3.scaleBand(rows.map((r, i) => i), [ml, W - 4]).padding(0.2);
+    svg.selectAll('.g').data(ticks).join('line').attr('x1', ml).attr('x2', W - 4).attr('y1', y).attr('y2', y).attr('stroke', 'var(--grid)');
+    svg.selectAll('.yl').data(ticks).join('text').attr('x', ml - 6).attr('y', d => y(d) + 4).attr('text-anchor', 'end').attr('font-size', 11).attr('fill', 'var(--muted)').text(yf);
+    const every = Math.ceil(rows.length / Math.max(1, Math.floor((W - ml) / 52)));
+    rows.forEach((r, i) => {
+      if (i % every === 0) svg.append('text').attr('x', x(i) + x.bandwidth() / 2).attr('y', H - 6).attr('text-anchor', 'middle').attr('font-size', 11).attr('fill', 'var(--muted)').text(xl(r));
+      const bw = Math.min(32, x.bandwidth()), x0 = x(i) + (x.bandwidth() - bw) / 2, v = val(r);
+      const h = v > 0 ? Math.max(2, y(0) - y(v)) : 2;
+      svg.append('rect').attr('x', x0).attr('width', bw).attr('y', y(0) - h).attr('height', h).attr('rx', Math.min(4, bw / 2)).attr('fill', colorOf(r));
+      svg.append('rect').attr('x', x(i)).attr('width', x.bandwidth()).attr('y', 0).attr('height', H - 24).attr('fill', 'transparent')
+        .on('mousemove', ev => { const [mx, my] = d3.pointer(ev, el); tip.html('');
+          tipLines(r).forEach((l, n) => tip.append('div').attr('class', n ? null : 'd').text(l));
+          const tw = tip.node().offsetWidth || 140;
+          tip.style('display', 'block').style('left', Math.min(Math.max(0, mx + 12), el.clientWidth - tw) + 'px').style('top', Math.max(0, my - 40) + 'px'); })
+        .on('mouseleave', () => tip.style('display', 'none'));
+    });
+    if (refLine) svg.append('line').attr('x1', ml).attr('x2', W - 4).attr('y1', y(refLine)).attr('y2', y(refLine)).attr('stroke', 'var(--ref)').attr('stroke-width', 1.5).attr('stroke-dasharray', '5 4');
+  }
+  const draw = () => {
+    bars($('dchart'), daily, r => r.litres, r => d3.timeFormat('%-d %b')(r.date), v => d3.format(',')(v),
+      r => [d3.timeFormat('%a %-d %b')(r.date), L(r.litres), r.litres > 5 ? 'About ' + gbp(r.cost_gbp) + ' excl. standing charge' : 'Away / no use'],
+      r => r.litres > 5 ? 'var(--water)' : 'var(--away)', ref);
+    bars($('mchart'), monthly, r => r.cost_gbp, r => r.label.slice(0, 3), v => '£' + v,
+      r => [r.label + ' · ' + r.period, gbp(r.cost_gbp), d3.format(',')(r.litres) + ' litres'], () => 'var(--water)');
+  };
+  draw();
+  let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(draw, 150); });
+})();
+</script>
+</body>
+</html>
