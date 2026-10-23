@@ -3,7 +3,7 @@
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 
-  const PAGES = [['', 'Home'], ['energy/', 'Energy'], ['water/', 'Water'], ['vouchers/', 'Vouchers']];
+  const PAGES = [['', 'Home'], ['energy/', 'Energy'], ['water/', 'Water'], ['vouchers/', 'Vouchers'], ['kitchen/', 'Kitchen']];
   function nav(current, root) {
     const bar = document.createElement('header'); bar.className = 'bar';
     const n = document.createElement('nav'); n.setAttribute('aria-label', 'Pages');

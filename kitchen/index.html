@@ -1,0 +1,704 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mo's Kitchen Plan</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: Home panel style. Sticky bar, a hero with Mo's real numbers, a week switcher, then tabs for Week / Shop / Sunday / Plate / Habits */
+:root {
+  --paper: #f3f5f2; --panel: #fbfcfa; --ink: #18222f; --graphite: #5b6573; --rule: #d3d9d4; --grid: #e3e8e4;
+  --leaf: #2f8f6b; --leaf-soft: #d3ece1; --pepper: #c2492f; --pepper-soft: #f5dad2; --palm: #e2a91c; --palm-soft: #f6e3ae; --flow: #2b6cb0; --flow-soft: #cfe0f2;
+  --shadow: 0 1px 0 rgba(24,34,47,.04), 0 8px 24px -16px rgba(24,34,47,.25);
+  --display: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif;
+  --body: 'Instrument Sans', 'Segoe UI', system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #121820; --panel: #18202a; --ink: #e8ece8; --graphite: #9aa4b1; --rule: #2a3440; --grid: #222c37;
+  --leaf: #5cc29a; --leaf-soft: #1c3b30; --pepper: #ec7c62; --pepper-soft: #47231b; --palm: #f0c04a; --palm-soft: #4a3d1a; --flow: #6fa8e0; --flow-soft: #1d3550;
+  --shadow: 0 1px 0 rgba(0,0,0,.3), 0 10px 28px -18px rgba(0,0,0,.8); color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --paper: #121820; --panel: #18202a; --ink: #e8ece8; --graphite: #9aa4b1; --rule: #2a3440; --grid: #222c37;
+  --leaf: #5cc29a; --leaf-soft: #1c3b30; --pepper: #ec7c62; --pepper-soft: #47231b; --palm: #f0c04a; --palm-soft: #4a3d1a; --flow: #6fa8e0; --flow-soft: #1d3550;
+  --shadow: 0 1px 0 rgba(0,0,0,.3), 0 10px 28px -18px rgba(0,0,0,.8); color-scheme: dark; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 400 16px/1.55 var(--body); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--paper); }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--flow); outline-offset: 3px; border-radius: 4px; }
+button { font: inherit; color: inherit; }
+
+.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10; background: color-mix(in srgb, var(--paper) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--rule); }
+.bar nav { max-width: 1120px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; align-items: center; gap: 4px; height: 56px; overflow-x: auto; scrollbar-width: none; }
+.bar nav::-webkit-scrollbar { display: none; }
+.mark { font: 700 1.05rem/1 var(--display); font-stretch: 85%; text-decoration: none; margin-right: auto; padding-right: 16px; white-space: nowrap; display: flex; align-items: center; gap: 8px; }
+.mark i { width: 10px; height: 18px; border-radius: 3px; background: linear-gradient(var(--leaf) 0 50%, var(--pepper) 50% 100%); display: inline-block; }
+.bar a.tab { text-decoration: none; color: var(--graphite); font-weight: 500; font-size: .92rem; padding: 7px 12px; border-radius: 999px; white-space: nowrap; }
+.bar a.tab:hover { color: var(--ink); background: var(--grid); }
+.bar a.tab[aria-current="page"] { color: var(--ink); background: var(--panel); box-shadow: inset 0 0 0 1px var(--rule); }
+@media (max-width: 480px) { .mark span { display: none; } .bar a.tab { padding: 7px 10px; } }
+
+main { max-width: 1120px; margin: 0 auto; padding-block: 32px 72px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.head { display: grid; gap: 10px; margin-bottom: 24px; }
+.eyebrow { font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; color: var(--graphite); font-weight: 600; margin: 0; }
+h1 { font: 700 clamp(2.3rem, 7vw, 4rem)/.95 var(--display); font-stretch: 78%; letter-spacing: -.025em; margin: 0; max-width: 15ch; text-wrap: balance; }
+.head p.lede { margin: 0; color: var(--graphite); max-width: 62ch; font-size: 1.04rem; }
+.head p.lede b { color: var(--ink); font-weight: 600; }
+h2 { font: 650 1.25rem/1.2 var(--display); font-stretch: 90%; margin: 0; text-wrap: balance; }
+h3 { font: 650 1rem/1.25 var(--display); font-stretch: 92%; margin: 0; }
+
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12.5rem), 1fr)); border: 1px solid var(--rule); border-radius: 16px; background: var(--panel); box-shadow: var(--shadow); overflow: hidden; margin-bottom: 22px; }
+.stat { padding: 16px 20px; border-right: 1px solid var(--rule); border-bottom: 1px solid var(--rule); margin: 0 -1px -1px 0; }
+.stat .k { font-size: .85rem; color: var(--graphite); }
+.stat .v { font: 650 2rem/1.1 var(--display); font-stretch: 85%; font-variant-numeric: tabular-nums; margin: 4px 0 2px; }
+.stat .s { font-size: .84rem; color: var(--graphite); }
+.v.bad { color: var(--pepper); } .v.good { color: var(--leaf); }
+
+.weekbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin-bottom: 14px; }
+.weekbar .wk { display: flex; align-items: center; gap: 6px; }
+.wkbtn { width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--rule); background: var(--panel); cursor: pointer; display: grid; place-items: center; font-size: 1.1rem; }
+.wkbtn:hover { background: var(--grid); }
+.wklabel { font: 650 1.15rem/1.1 var(--display); font-stretch: 88%; min-width: 0; }
+.wklabel small { display: block; font: 400 .82rem var(--body); color: var(--graphite); }
+.pill { font-size: .75rem; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: var(--flow-soft); color: var(--flow); }
+
+.tabs { display: flex; gap: 2px; background: var(--grid); border-radius: 999px; padding: 3px; overflow-x: auto; scrollbar-width: none; margin-bottom: 18px; width: max-content; max-width: 100%; }
+.tabs button { background: none; border: 0; padding: 8px 14px; border-radius: 999px; cursor: pointer; color: var(--graphite); font-weight: 500; font-size: .92rem; white-space: nowrap; }
+.tabs button[aria-selected="true"] { background: var(--panel); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+
+.panel { background: var(--panel); border: 1px solid var(--rule); border-radius: 16px; padding: 20px; box-shadow: var(--shadow); min-width: 0; }
+.panel-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; margin-bottom: 14px; }
+.note { color: var(--graphite); font-size: .88rem; margin: 0; }
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: 18px; }
+
+.days { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin-bottom: 14px; padding-bottom: 2px; }
+.days button { flex: 0 0 auto; display: grid; place-items: center; gap: 2px; width: 58px; padding: 8px 0; border-radius: 12px; border: 1px solid var(--rule); background: var(--panel); cursor: pointer; }
+.days button .dn { font: 650 1.05rem/1 var(--display); font-stretch: 85%; }
+.days button .dd { font-size: .72rem; color: var(--graphite); }
+.days button[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.days button[aria-pressed="true"] .dd { color: inherit; opacity: .75; }
+.days button.done::after { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--leaf); }
+.meals { display: grid; gap: 10px; }
+.meal { display: grid; grid-template-columns: auto 1fr auto; gap: 4px 14px; align-items: start; padding: 14px 16px; border: 1px solid var(--rule); border-radius: 14px; background: var(--paper); }
+.meal .when { grid-row: span 2; font-size: .72rem; letter-spacing: .07em; text-transform: uppercase; color: var(--graphite); font-weight: 600; width: 74px; padding-top: 3px; }
+.meal .what { font-weight: 600; min-width: 0; }
+.meal .how { grid-column: 2; font-size: .88rem; color: var(--graphite); min-width: 0; }
+.tag { display: inline-block; font-size: .7rem; font-weight: 600; padding: 2px 8px; border-radius: 999px; margin-left: 6px; vertical-align: 2px; }
+.tag.batch { background: var(--leaf-soft); color: var(--leaf); }
+.tag.treat { background: var(--pepper-soft); color: var(--pepper); }
+.tag.new { background: var(--palm-soft); color: color-mix(in srgb, var(--palm) 60%, var(--ink)); }
+.meal details { grid-column: 2 / -1; margin-top: 6px; min-width: 0; }
+.meal summary { cursor: pointer; font-size: .85rem; font-weight: 600; color: var(--flow); width: max-content; }
+.rec { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); gap: 6px 22px; margin-top: 8px; font-size: .9rem; }
+.rec h4 { font: 650 .8rem var(--body); letter-spacing: .06em; text-transform: uppercase; color: var(--graphite); margin: 0 0 4px; }
+.rec ul, .rec ol { margin: 0; padding-left: 18px; display: grid; gap: 3px; }
+.rec .serves { grid-column: 1 / -1; color: var(--graphite); font-size: .82rem; margin: 0; }
+@media (max-width: 480px) { .meal details { grid-column: 1 / -1; } }
+.tick { grid-row: span 2; width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--rule); background: var(--panel); cursor: pointer; display: grid; place-items: center; }
+.tick svg { width: 16px; height: 16px; opacity: 0; }
+.meal.ate { background: var(--leaf-soft); border-color: color-mix(in srgb, var(--leaf) 40%, var(--rule)); }
+.meal.ate .tick { background: var(--leaf); border-color: var(--leaf); }
+.meal.ate .tick svg { opacity: 1; }
+@media (max-width: 480px) { .meal { grid-template-columns: 1fr auto; } .meal .when { grid-row: auto; grid-column: 1; width: auto; padding: 0; } .meal .how { grid-column: 1; } .tick { grid-row: 1 / span 3; grid-column: 2; } }
+
+.shop-top { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.total { font: 650 1.6rem/1 var(--display); font-stretch: 85%; font-variant-numeric: tabular-nums; }
+.total small { font: 400 .85rem var(--body); color: var(--graphite); margin-left: 6px; }
+.meter { height: 8px; border-radius: 99px; background: var(--grid); overflow: hidden; flex: 1 1 160px; max-width: 280px; }
+.meter i { display: block; height: 100%; background: var(--leaf); width: 0; transition: width .3s; }
+.aisles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: 16px; }
+.aisle h3 { margin-bottom: 6px; display: flex; justify-content: space-between; }
+.aisle h3 span { font: 400 .82rem var(--body); color: var(--graphite); }
+.item { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px dashed var(--rule); cursor: pointer; }
+.item input { width: 18px; height: 18px; accent-color: var(--leaf); flex: none; }
+.item .nm { flex: 1; min-width: 0; }
+.item .shop { display: inline-block; font-size: .7rem; font-weight: 600; letter-spacing: .03em; padding: 1px 7px; border-radius: 999px; margin-right: 6px; vertical-align: 1px; background: var(--flow-soft); color: var(--flow); }
+.item .st { font-size: .72rem; color: var(--graphite); }
+.item .pr { font-variant-numeric: tabular-nums; font-size: .9rem; color: var(--graphite); white-space: nowrap; }
+.item.got .nm { text-decoration: line-through; color: var(--graphite); }
+.btn { border: 1px solid var(--rule); background: var(--panel); border-radius: 999px; padding: 7px 14px; cursor: pointer; font-size: .88rem; font-weight: 500; }
+.btn:hover { background: var(--grid); }
+
+.plate-wrap { display: grid; grid-template-columns: minmax(0, 300px) 1fr; gap: 24px; align-items: center; }
+@media (max-width: 640px) { .plate-wrap { grid-template-columns: 1fr; justify-items: center; } }
+.plate { width: 100%; max-width: 300px; }
+.plate path { cursor: pointer; transition: transform .2s; transform-origin: 150px 150px; stroke: var(--panel); stroke-width: 3; }
+.plate path:hover, .plate path.on { transform: scale(1.03); }
+.plate text { font: 600 13px var(--body); fill: var(--ink); pointer-events: none; }
+.plate-info { min-width: 0; display: grid; gap: 10px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-size: .85rem; padding: 4px 10px; border-radius: 999px; background: var(--grid); }
+.hands { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 9.5rem), 1fr)); gap: 10px; margin-top: 18px; }
+.hand { border: 1px solid var(--rule); border-radius: 12px; padding: 12px; background: var(--paper); }
+.hand b { display: block; font: 650 1rem var(--display); font-stretch: 90%; }
+.hand span { font-size: .85rem; color: var(--graphite); }
+.swaps { display: grid; gap: 8px; margin-top: 8px; }
+.swap { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 12px; background: var(--paper); border: 1px solid var(--rule); font-size: .92rem; }
+.swap .from { color: var(--pepper); } .swap .to { color: var(--leaf); font-weight: 600; } .swap .arr { color: var(--graphite); }
+
+.steps { list-style: none; margin: 0; padding: 0; display: grid; counter-reset: s; }
+.step { display: grid; grid-template-columns: 40px 1fr auto; gap: 14px; align-items: start; padding: 14px 0; border-bottom: 1px solid var(--rule); counter-increment: s; }
+.step::before { content: counter(s); font: 650 1.1rem/1.3 var(--display); font-stretch: 85%; color: var(--graphite); font-variant-numeric: tabular-nums; }
+.step .d { min-width: 0; } .step .d p { margin: 2px 0 0; font-size: .88rem; color: var(--graphite); }
+.timer { font-variant-numeric: tabular-nums; min-width: 92px; text-align: center; }
+.timer.run { background: var(--palm-soft); border-color: var(--palm); }
+.timer.fin { background: var(--leaf-soft); border-color: var(--leaf); }
+@media (max-width: 480px) { .step { grid-template-columns: 28px 1fr; } .step .timer { grid-column: 2; justify-self: start; } }
+
+.glasses { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 6px; }
+.glass { width: 38px; height: 52px; border: 2px solid var(--flow); border-radius: 4px 4px 10px 10px; background: none; cursor: pointer; position: relative; overflow: hidden; padding: 0; }
+.glass i { position: absolute; inset: auto 0 0 0; height: 0; background: var(--flow); opacity: .55; transition: height .25s; }
+.glass.full i { height: 80%; }
+.streak { font: 700 3.2rem/1 var(--display); font-stretch: 78%; font-variant-numeric: tabular-nums; color: var(--leaf); }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.foot { margin-top: 36px; color: var(--graphite); font-size: .82rem; max-width: 70ch; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+</head>
+<body>
+<header class="bar"><nav aria-label="Pages">
+  <a class="mark" href="../"><i aria-hidden="true"></i><span>Home panel</span></a>
+  <a class="tab" href="../">Home</a>
+  <a class="tab" href="../energy/">Energy</a>
+  <a class="tab" href="../water/">Water</a>
+  <a class="tab" href="../vouchers/">Vouchers</a>
+  <a class="tab" href="./" aria-current="page">Kitchen</a>
+</nav></header>
+
+<main>
+  <div class="head">
+    <p class="eyebrow">A new menu every week</p>
+    <h1>Cook once, eat well all week.</h1>
+    <p class="lede">Built from your Lidl receipts and the food you love: <b>jollof, spaghetti, dirty rice, chicken legs and your fruit bowl</b>, plus a few new dishes each week. Everything is made a bit leaner for more energy. Shop Saturday, cook Sunday, and the lunch boxes are done.</p>
+  </div>
+
+  <section class="stats" aria-label="Your food numbers">
+    <div class="stat"><div class="k">Your Lidl shop</div><div class="v">£25–54</div><div class="s">a trip, from 4 receipts (Aug–Oct)</div></div>
+    <div class="stat"><div class="k">McDonald's visits</div><div class="v bad">17</div><div class="s">in 6 months, £78 in total</div></div>
+    <div class="stat"><div class="k">Apple juice</div><div class="v bad">4</div><div class="s">cartons on every receipt</div></div>
+    <div class="stat"><div class="k">This week's shop</div><div class="v good" id="statShop">£0</div><div class="s">estimated, Lidl prices</div></div>
+  </section>
+
+  <div class="weekbar">
+    <div class="wk">
+      <button class="wkbtn" id="wkPrev" type="button" aria-label="Previous week">‹</button>
+      <button class="wkbtn" id="wkNext" type="button" aria-label="Next week">›</button>
+    </div>
+    <div class="wklabel" id="wkLabel">Week 1</div>
+    <span class="pill" id="wkPill" hidden>This week</span>
+  </div>
+
+  <div class="tabs" role="tablist" aria-label="Sections">
+    <button role="tab" id="t-week" aria-controls="p-week" aria-selected="true">Week</button>
+    <button role="tab" id="t-shop" aria-controls="p-shop" aria-selected="false">Shopping list</button>
+    <button role="tab" id="t-sun" aria-controls="p-sun" aria-selected="false">Sunday cook</button>
+    <button role="tab" id="t-plate" aria-controls="p-plate" aria-selected="false">Plate guide</button>
+    <button role="tab" id="t-hab" aria-controls="p-hab" aria-selected="false">Habits</button>
+  </div>
+
+  <section class="panel" role="tabpanel" id="p-week" aria-labelledby="t-week">
+    <div class="panel-head"><h2 id="dayTitle">Monday</h2><p class="note" id="dayCount">Tick meals as you eat them</p></div>
+    <div class="days" id="days"></div>
+    <div class="meals" id="meals"></div>
+  </section>
+
+  <section class="panel" role="tabpanel" id="p-shop" aria-labelledby="t-shop" hidden>
+    <div class="shop-top">
+      <div class="total" id="shopTotal">£0<small>estimated</small></div>
+      <div class="meter" aria-hidden="true"><i id="shopBar"></i></div>
+      <span class="note" id="shopLeft"></span>
+      <button class="btn" id="shopReset" type="button">Clear ticks</button>
+    </div>
+    <div class="aisles" id="aisles"></div>
+    <p class="note" style="margin-top:14px">Prices without "est." come from your 4 Lidl receipts (Aug–Oct) or what you paid at the African shop on 23 Oct. "est." means I haven't seen your price yet. Send me a receipt and I'll update it. Check the Lidl Plus app before you go for coupons. Staples like seasoning, stock cubes, oil, garri, curry powder and pepper soup spice aren't counted.</p>
+  </section>
+
+  <section class="panel" role="tabpanel" id="p-sun" aria-labelledby="t-sun" hidden>
+    <div class="panel-head"><h2 id="sunTitle">Sunday batch cook</h2><p class="note">About 2 hours. Makes 5 lunch boxes.</p></div>
+    <ol class="steps" id="steps"></ol>
+    <p class="note" style="margin-top:14px">Cooked food keeps 3 days in the fridge. Freeze the Thursday and Friday boxes on Sunday, and move them to the fridge the night before.</p>
+  </section>
+
+  <section class="panel" role="tabpanel" id="p-plate" aria-labelledby="t-plate" hidden>
+    <div class="plate-wrap">
+      <svg class="plate" viewBox="0 0 300 300" role="img" aria-label="Plate split: half vegetables, a quarter protein, a quarter carbs">
+        <circle cx="150" cy="150" r="146" fill="var(--grid)"></circle>
+        <path id="sVeg" d="M150 150 L150 14 A136 136 0 0 0 150 286 Z" fill="var(--leaf)"></path>
+        <path id="sPro" d="M150 150 L150 14 A136 136 0 0 1 286 150 Z" fill="var(--pepper)"></path>
+        <path id="sCarb" d="M150 150 L286 150 A136 136 0 0 1 150 286 Z" fill="var(--palm)"></path>
+        <text x="72" y="155" text-anchor="middle">Veg ½</text>
+        <text x="205" y="98" text-anchor="middle">Protein ¼</text>
+        <text x="205" y="212" text-anchor="middle">Carbs ¼</text>
+      </svg>
+      <div class="plate-info">
+        <h2 id="plTitle">Half the plate is vegetables</h2>
+        <p class="note" id="plText"></p>
+        <div class="chips" id="plChips"></div>
+        <p class="note">Tap a slice on the plate to switch.</p>
+      </div>
+    </div>
+    <div class="hands">
+      <div class="hand"><b>Rice or pasta</b><span>One fist, cooked. Jollof counts.</span></div>
+      <div class="hand"><b>Swallow</b><span>About one fist of eba or amala.</span></div>
+      <div class="hand"><b>Meat</b><span>About your palm, thickness included.</span></div>
+      <div class="hand"><b>Oil</b><span>One thumb per portion. Measure it, don't pour.</span></div>
+      <div class="hand"><b>Vegetables</b><span>Two cupped hands or more.</span></div>
+    </div>
+    <h3 style="margin-top:22px">Swaps from your receipts</h3>
+    <div class="swaps" id="swaps"></div>
+  </section>
+
+  <section class="panel" role="tabpanel" id="p-hab" aria-labelledby="t-hab" hidden>
+    <div class="cols">
+      <div>
+        <h2>Water today</h2>
+        <p class="note">Aim for 8 glasses, about 2 litres. Tap to fill.</p>
+        <div class="glasses" id="glasses"></div>
+        <p class="note" id="waterNote"></p>
+      </div>
+      <div>
+        <h2>Days without a drive-thru</h2>
+        <div class="streak" id="streak">0</div>
+        <p class="note">One planned treat a month is fine. It's the unplanned ones that add up.</p>
+        <div class="row" style="margin-top:10px">
+          <button class="btn" id="streakAdd" type="button">+1 day</button>
+          <button class="btn" id="streakReset" type="button">I had one, reset</button>
+        </div>
+      </div>
+    </div>
+    <h3 style="margin-top:24px">The 7 rules</h3>
+    <ol style="margin:8px 0 0; padding-left:20px; display:grid; gap:4px; font-size:.95rem">
+      <li>Batch-cook on Sunday. Lunch is always in the box.</li>
+      <li>Half the plate is vegetables, and rice, pasta or swallow is one fist.</li>
+      <li>Have protein at breakfast: eggs or yoghurt.</li>
+      <li>Two cartons of apple juice a shop, not four. Water it down half and half.</li>
+      <li>Keep a snack box in the car: fruit and a boiled egg.</li>
+      <li>One treat a week from the shop (doughnut, brioche, biscuits), and one planned takeaway a month.</li>
+      <li>Log meals in MyNetDiary for 2 weeks to see your real portions.</li>
+    </ol>
+  </section>
+
+  <p class="foot">This is a general healthy-eating guide based on the NHS Eatwell Guide, not medical advice. If you have a health condition, check changes with your GP. Your ticks are saved on this device only.</p>
+</main>
+
+<script>
+/*GEN-START*/
+// Item catalogue: [name, price £, aisle, portions per pack]. Prices from Mo's Lidl receipts where he's bought it.
+const ITEMS = {
+  chickenlegs: ['Chicken legs, 1kg', 2.25, 'Meat and eggs', 3],
+  thighs: ['Chicken thighs, 1kg', 2.99, 'Meat and eggs', 3],
+  breast: ['Chicken breast fillets, 650g', 3.49, 'Meat and eggs', 3],
+  porkmince: ['Pork mince 5% fat, 500g', 2.49, 'Meat and eggs', 3],
+  beefmince: ['Beef mince 5% fat, 500g', 3.29, 'Meat and eggs', 3],
+  steak: ['Beef steak slices', 1.65, 'Meat and eggs', 2],
+  dicedbeef: ['Diced beef, 400g', 3.49, 'Meat and eggs', 3],
+  burgers: ['Beef quarter pounders, 4 pack', 2.89, 'Meat and eggs', 2],
+  frankfurters: ['Frankfurters', 1.99, 'Meat and eggs', 2],
+  eggs: ['15 free-range eggs', 2.85, 'Meat and eggs', 7],
+  milk: ['Lactose-free semi-skimmed milk', 0.99, 'Dairy', 6],
+  yoghurt: ['Fat-free natural yoghurt', 0.55, 'Dairy', 3],
+  grapes: ['Seedless grapes, 500g', 1.89, 'Fruit and veg', 3],
+  pineapple: ['Pineapple', 0.98, 'Fruit and veg', 3],
+  apples: ['British apples', 1.39, 'Fruit and veg', 5],
+  peelers: ['Easy peelers', 0.95, 'Fruit and veg', 4],
+  kiwi: ['Ready-to-eat kiwi', 1.39, 'Fruit and veg', 4],
+  bananas: ['Bananas, 5 pack', 0.89, 'Fruit and veg', 5],
+  onions: ['Brown onions, 3 pack', 0.95, 'Fruit and veg', 2],
+  redonions: ['Red onions, 3 pack', 0.95, 'Fruit and veg', 4],
+  springon: ['Spring onions', 0.69, 'Fruit and veg', 4],
+  peppers: ['Red bell peppers (tatashe), pack of 2', 1.3, 'Fruit and veg', 2],
+  stirfry: ['Mixed pepper stir fry', 0.99, 'Fruit and veg', 2],
+  cucumber: ['Cucumber', 0.99, 'Fruit and veg', 4],
+  salad: ['Sweet and crunchy salad', 0.78, 'Fruit and veg', 3],
+  carrots: ['Carrot batons', 0.79, 'Fruit and veg', 3],
+  tomatoes: ['Salad tomatoes', 0.69, 'Fruit and veg', 3],
+  lettuce: ['Little gem lettuce', 0.69, 'Fruit and veg', 2],
+  corn: ['Corn on the cob, 2 pack', 0.99, 'Fruit and veg', 1],
+  garlic: ['Garlic', 0.4, 'Fruit and veg', 8],
+  scotch: ['Scotch bonnet peppers', 1, 'African shop', 6],
+  plantain: ['Plantain (pair)', 2, 'African shop', 2],
+  okra: ['Frozen okra', 2, 'African shop', 4],
+  garri: ['Garri (for eba)', 2.5, 'African shop', 10],
+  water: ['Still water, 6 × 1.5L', 2.34, 'Household and health', 1],
+  squash: ['Apple and blackcurrant squash (for diluted juice)', 1.75, 'Household and health', 1],
+  loperamide: ['Diarrhoea relief (loperamide)', 1.18, 'Household and health', 1],
+  toiletroll: ['Toilet tissue (cotton)', 6.29, 'Household and health', 1],
+  detergent: ['Liquid capsules (Blossom)', 6.99, 'Household and health', 1],
+  freshener: ['Air freshener', 0.99, 'Household and health', 1],
+  cottonbuds: ['Cotton buds', 0.59, 'Household and health', 1],
+  rice: ['Basmati rice, 1kg', 1.55, 'Cupboard', 8],
+  spaghetti: ['Spaghetti, 500g', 0.28, 'Cupboard', 3],
+  macaroni: ['Macaroni, 500g', 0.72, 'Cupboard', 3],
+  noodles: ['Medium egg noodles', 0.79, 'Cupboard', 3],
+  oats: ['Porridge oats, 1kg', 0.75, 'Cupboard', 12],
+  wraps: ['Tortilla wraps, 8 pack', 0.99, 'Bakery', 4],
+  baps: ['Large white baps', 0.69, 'Bakery', 3],
+  tins: ['Peeled plum tomatoes', 0.43, 'Cupboard', 1],
+  puree: ['Tomato purée', 0.59, 'Cupboard', 4],
+  sweetcorn: ['Sweetcorn, tin', 0.55, 'Cupboard', 2],
+  coconut: ['Light coconut milk', 0.75, 'Cupboard', 2],
+  sardines: ['Sardines in spicy tomato', 0.59, 'Cupboard', 1],
+  honey: ['Squeezy honey', 1.49, 'Cupboard', 14],
+  swfries: ['Sweet potato fries', 1.99, 'Frozen', 3],
+  spinach: ['Frozen spinach', 1.29, 'Frozen', 4],
+  mixedveg: ['Frozen mixed veg', 0.99, 'Frozen', 5],
+  berries: ['Frozen berries', 1.99, 'Frozen', 5]
+};
+// Prices not on Mo's receipts are estimates; the list marks them 'est.'
+const ESTIMATED = ['breast', 'beefmince', 'dicedbeef', 'bananas', 'tomatoes', 'lettuce', 'corn', 'garlic', 'rice', 'noodles', 'oats', 'coconut', 'honey', 'spinach', 'mixedveg', 'berries', 'garri', 'freshener', 'cottonbuds'];
+// Long-life items that usually last 2–3 weeks: shown with a 'check the cupboard' note.
+const PANTRY = ['rice', 'oats', 'honey', 'puree', 'garlic', 'garri', 'toiletroll', 'detergent', 'freshener', 'cottonbuds', 'loperamide'];
+// Mo's regulars on every list, food or not.
+const REGULARS = { water: 1, squash: 1, loperamide: 1, toiletroll: 1, detergent: 1, freshener: 1, cottonbuds: 1, onions: 1, plantain: 1 };
+const AISLES = ['Fruit and veg', 'Meat and eggs', 'Dairy', 'Bakery', 'Cupboard', 'Frozen', 'Household and health', 'African shop'];
+
+// Meals: [name, how, {item: portions}, isNew]
+const BREAKFAST = [
+  ['Fruit salad bowl with yoghurt and honey', 'A big bowl of fruit, 3 big spoons of yoghurt, one teaspoon of honey.', { grapes: 1, pineapple: 1, yoghurt: 1, honey: 1 }],
+  ['Egg and pepper wrap', '2 eggs scrambled with pepper and spring onion in one wrap.', { eggs: 1, wraps: 1, peppers: 1, springon: 1 }],
+  ['Oats with banana and honey', '50g oats with lactose-free milk. Microwave 2 minutes.', { oats: 1, milk: 1, bananas: 1, honey: 1 }],
+  ['Spring onion omelette and a wrap', '3 eggs, spring onion and tomato.', { eggs: 1, wraps: 1, springon: 1, tomatoes: 1 }],
+  ['Dodo and egg', 'Baked plantain with scrambled egg and pepper. A Saturday favourite.', { plantain: 1, eggs: 1, peppers: 1 }, 1],
+  ['Eggs in spicy tomato with a wrap', 'Eggs poached in a tin of tomatoes with onion and scotch bonnet.', { eggs: 1, tins: 1, onions: 1, wraps: 1 }, 1],
+  ['Overnight oats with berries', 'Oats, lactose-free milk and frozen berries in a tub the night before.', { oats: 1, milk: 1, berries: 1 }, 1],
+  ['Scrambled egg bap with tomato', 'One white bap, 2 eggs, sliced tomato.', { eggs: 1, baps: 1, tomatoes: 1 }, 1]
+];
+// Batch lunches: makes the boxes. steps: [title, detail, minutes]
+const BATCH = [
+  ['Jollof rice and chicken', 'One fist of jollof with a chicken leg and salad.', { rice: 2, chickenlegs: 2, tins: 2, puree: 1, peppers: 2, onions: 1, scotch: 1, salad: 1 }, 0,
+    [['Bake the chicken legs', '200°C oven, seasoned with thyme and curry powder.', 40], ['Blend and fry the jollof base', 'Tomatoes, pepper, onion and scotch bonnet. Fry until the sour taste goes.', 20], ['Cook the jollof', 'Rice into the base with stock. Low heat, lid on.', 25]]],
+  ['Mince dirty rice', 'Lean pork mince, peppers and spring onion through Cajun rice.', { rice: 2, porkmince: 2, peppers: 1, onions: 1, springon: 1 }, 0,
+    [['Brown the mince', 'Dry pan, no oil needed, with onion and garlic.', 10], ['Cook the rice in stock', '', 15], ['Stir through', 'Mince, peppers, Cajun or all-purpose seasoning, spring onion.', 5]]],
+  ['Spaghetti bolognese', 'One fist of spaghetti, extra sauce.', { spaghetti: 2, beefmince: 2, tins: 2, puree: 1, onions: 1, garlic: 1, mixedveg: 1 }, 0,
+    [['Brown the mince with onion and garlic', '', 10], ['Simmer the sauce', 'Tomatoes, purée and frozen mixed veg.', 25], ['Cook the spaghetti', '', 10]]],
+  ['Rice and chicken stew with spinach', 'One fist of rice, stew and a chicken thigh.', { rice: 2, thighs: 2, tins: 2, peppers: 2, onions: 1, scotch: 1, spinach: 1 }, 0,
+    [['Bake the thighs', '200°C, skin off after cooking.', 35], ['Fry the stew base', 'Blended tomatoes, pepper, onion, scotch bonnet.', 25], ['Cook the rice, add spinach to the stew', '', 15]]],
+  ['Nigerian fried rice and chicken', 'Party-style fried rice with sweetcorn, mixed veg and chicken.', { rice: 2, thighs: 2, mixedveg: 2, sweetcorn: 1, springon: 1 }, 1,
+    [['Bake the thighs', '', 35], ['Parboil the rice in stock with curry powder', '', 12], ['Stir-fry', 'Rice, mixed veg, sweetcorn, spring onion and a little oil.', 10]]],
+  ['Party pasta with pork mince', 'Jollof-style macaroni with lean mince and sweetcorn.', { macaroni: 2, porkmince: 2, tins: 1, puree: 1, peppers: 1, sweetcorn: 1 }, 1,
+    [['Brown the mince', '', 10], ['Make the jollof sauce', 'Tomatoes, purée and pepper.', 15], ['Boil the macaroni and stir through', '', 12]]],
+  ['Chicken and pepper stir-fry noodles', 'Egg noodles, chicken breast and the pepper stir-fry mix.', { noodles: 2, breast: 2, stirfry: 2, springon: 1 }, 1,
+    [['Slice and cook the chicken', 'Hot pan, soy sauce and garlic.', 10], ['Cook the noodles', '', 5], ['Toss with the peppers', '', 5]]],
+  ['Chicken curry and rice', 'Light coconut chicken curry with spinach.', { rice: 2, thighs: 2, coconut: 1, onions: 1, spinach: 1, tins: 1 }, 1,
+    [['Brown the chicken with onion and curry powder', '', 10], ['Simmer', 'Coconut milk, tomatoes and spinach.', 25], ['Cook the rice', '', 15]]],
+  ['Chicken burrito bowl', 'Rice, spiced chicken, sweetcorn, peppers and salad.', { rice: 2, breast: 2, sweetcorn: 1, peppers: 1, salad: 1, tomatoes: 1 }, 1,
+    [['Season and bake the chicken', 'Paprika, cumin, garlic. 200°C.', 25], ['Cook the rice with lime or lemon juice', '', 15], ['Build the boxes', 'Rice, chicken, sweetcorn, peppers. Salad goes in on the day.', 5]]],
+  ['Chilli mince and rice', 'Beef chilli with peppers and sweetcorn. No beans.', { rice: 2, beefmince: 2, tins: 1, peppers: 1, sweetcorn: 1, onions: 1 }, 1,
+    [['Brown the mince with onion', '', 10], ['Simmer with tomatoes, peppers and chilli', '', 25], ['Cook the rice', '', 15]]],
+  ['Jollof spaghetti and chicken', 'Nigerian-style spaghetti cooked in pepper sauce.', { spaghetti: 2, chickenlegs: 2, tins: 1, puree: 1, peppers: 2, onions: 1, scotch: 1 }, 1,
+    [['Bake the chicken legs', '', 40], ['Fry the pepper sauce', '', 15], ['Cook spaghetti in the sauce', '', 12]]]
+];
+const DINNER = [
+  ['Chicken legs, sweet potato fries and salad', 'Oven or air fryer. Skin off before eating.', { chickenlegs: 1, swfries: 1, salad: 1 }],
+  ['Chicken pepper soup', 'Chicken legs, pepper soup spice and scotch bonnet. Light and filling.', { chickenlegs: 1, scotch: 1, onions: 1 }],
+  ['Spicy sardine tomato spaghetti', 'A tin of sardines in spicy tomato through spaghetti with spinach. 15 minutes.', { sardines: 1, spaghetti: 1, spinach: 1 }],
+  ['Chicken fajita wraps', 'Chicken breast and the pepper stir-fry mix in wraps.', { breast: 1, stirfry: 1, wraps: 1, salad: 1 }, 1],
+  ['Homemade chicken dippers and sweet potato fries', 'Breast strips dipped in egg and seasoned crumbs, air-fried. Beats the frozen 1kg bag.', { breast: 1, eggs: 1, swfries: 1, salad: 1 }, 1],
+  ['Pork mince lettuce tacos', 'Spiced lean mince in little gem leaves or a wrap.', { porkmince: 1, lettuce: 1, tomatoes: 1, wraps: 1 }, 1],
+  ['Steak strip stir-fry with rice', 'Steak slices, peppers and spring onion. 10 minutes.', { steak: 1, stirfry: 1, rice: 1 }, 1],
+  ['Honey BBQ chicken legs and corn on the cob', 'Brush with your honey BBQ sauce in the last 10 minutes.', { chickenlegs: 1, corn: 1, salad: 1 }, 1],
+  ['Egg fried rice with veg', 'Leftover rice, 2 eggs, frozen mixed veg and spring onion.', { rice: 1, eggs: 1, mixedveg: 1, springon: 1 }, 1],
+  ['Chicken stew with baked dodo', 'Thighs in stew with oven-baked plantain.', { thighs: 1, plantain: 1, tins: 1 }, 1]
+];
+// Mo's swallow favourites: one efo and one okra dinner every week.
+const EFO = [
+  ['Efo riro with beef and eba', 'Spinach stew with diced beef. One fist of eba.', { spinach: 1, dicedbeef: 1, tins: 1, peppers: 1, garri: 1 }],
+  ['Efo riro with chicken and eba', 'Spinach stew with chicken thighs. One fist of eba.', { spinach: 1, thighs: 1, tins: 1, peppers: 1, garri: 1 }, 1],
+  ['Efo riro with chicken legs and eba', 'Go easy on the palm oil: one thumb a portion.', { spinach: 1, chickenlegs: 1, tins: 1, scotch: 1, garri: 1 }, 1]
+];
+const OKRA = [
+  ['Okra soup with beef and eba', 'Chopped okra, diced beef, pepper and a little palm oil. One fist of eba.', { okra: 1, dicedbeef: 1, peppers: 1, scotch: 1, garri: 1 }],
+  ['Okra soup with chicken and eba', 'Okra with chicken thighs and pepper. One fist of eba.', { okra: 1, thighs: 1, peppers: 1, scotch: 1, garri: 1 }, 1],
+  ['Okra and efo mix with beef and eba', 'Okra and spinach together, the best of both.', { okra: 1, spinach: 1, dicedbeef: 1, scotch: 1, garri: 1 }, 1]
+];
+const TREAT = [
+  ['Suya beef wraps', 'Suya-spiced steak, onion, tomato and cucumber in a wrap.', { steak: 1, wraps: 1, redonions: 1, tomatoes: 1, cucumber: 1 }],
+  ['Homemade burger and sweet potato fries', 'Lean beef burger in a white bap with salad.', { burgers: 1, baps: 1, swfries: 1, salad: 1 }, 1],
+  ['Hot dogs with fried onions', 'Frankfurters in baps with onions and a side salad.', { frankfurters: 1, baps: 1, onions: 1, salad: 1 }, 1],
+  ['BBQ chicken baps', 'Pulled BBQ chicken thighs in a bap with cucumber.', { thighs: 1, baps: 1, cucumber: 1, salad: 1 }, 1]
+];
+const SNACK = [
+  ['Apple and a boiled egg', { apples: 1, eggs: 1 }], ['Grapes', { grapes: 1 }], ['Easy peelers', { peelers: 1 }], ['Pineapple chunks', { pineapple: 1 }],
+  ['Kiwi ×2', { kiwi: 1 }], ['Banana', { bananas: 1 }], ['Cucumber and carrot batons', { cucumber: 1, carrots: 1 }], ['Yoghurt with berries', { yoghurt: 1, berries: 1 }]
+];
+
+// One-off extras Mo asks for, by week index: [title, note, [[name, price, shop, estimated?]], item keys they replace in the main list]
+const EXTRAS = {
+  0: ['Tonight: homemade burgers', 'Buy now. The 500g mince also covers Sunday\'s spag bol, so it\'s been taken off the main list.',
+    [['Lean beef mince 5% fat, 500g', 3.29, 'Any shop', 1], ['Large white baps', 0.69, 'Any shop'], ['Little gem lettuce', 0.69, 'Any shop', 1], ['Salad tomatoes', 0.69, 'Any shop', 1], ['Red onions, 3 pack', 0.95, 'Any shop'], ['Sweet potato fries', 1.99, 'Any shop'], ['Cheese slices (optional)', 1.19, 'Any shop', 1]],
+    ['beefmince', 'berries']]
+};
+const START = new Date(2026, 9, 26); // Monday of week 1
+function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function shuffled(arr, seed) { const a = arr.map((_, i) => i), r = rng(seed); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+// Take `count` items for week w from an endless run of shuffles, so the pool cycles before anything repeats.
+function pick(pool, count, w, salt, ok = () => true) {
+  const seq = [], need = (w + 1) * count + pool.length * 3;
+  for (let c = 0; seq.length < need; c++) seq.push(...shuffled(pool, salt * 1000 + c));
+  const out = []; let i = w * count;
+  while (out.length < count && i < seq.length) { const v = seq[i++]; if (!out.includes(v) && ok(pool[v], out.map(k => pool[k]))) out.push(v); }
+  return out.map(k => pool[k]);
+}
+// The main carb of a meal, so a week doesn't end up rice every day.
+const base = m => { const k = Object.keys(m[2] || {}); return k.includes('rice') ? 'rice' : k.some(x => x === 'spaghetti' || x === 'macaroni') ? 'pasta' : k.includes('noodles') ? 'noodles' : k.some(x => x === 'wraps' || x === 'baps') ? 'bread' : 'other'; };
+function buildWeek(w) {
+  const br = [BREAKFAST[0], ...pick(BREAKFAST.slice(1), 3, w, 1)];
+  // Two lunch batches with different carbs (e.g. one rice, one pasta). Week 1 is jollof + spag bol.
+  const bt = w === 0 ? [BATCH[0], BATCH[2]] : pick(BATCH, 2, w, 2, (m, got) => got.every(g => base(g) !== base(m)));
+  // Dinners: at most one rice dinner, and none if a lunch batch is already rice. No dinner repeats the lunch carb more than twice.
+  const lunchRice = bt.some(m => base(m) === 'rice');
+  const other = pick(DINNER, 3, w, 3, (m, got) => base(m) !== 'rice' ? got.filter(g => base(g) === base(m)).length < 2 : !lunchRice && !got.some(g => base(g) === 'rice'));
+  // Efo on Wednesday and okra on Saturday, every week.
+  const dn = [other[0], other[1], EFO[w % EFO.length], other[2], OKRA[w % OKRA.length]];
+  const tr = pick(TREAT, 1, w, 4)[0], sn = pick(SNACK, 7, w, 5);
+  const [A, B] = bt;
+  const box = (m, n) => [m[0], `Lunch box ${n}. ${m[1]}`, null, m[3], 'batch'];
+  const days = [
+    { b: br[0], l: box(A, 1), s: sn[0], d: dn[0] },
+    { b: br[1], l: box(B, 2), s: sn[1], d: dn[1] },
+    { b: br[2], l: box(A, 3), s: sn[2], d: dn[2] },
+    { b: br[0], l: [B[0], 'Lunch box 4, out of the freezer the night before. ' + B[1], null, B[3], 'batch'], s: sn[3], d: dn[3] },
+    { b: br[1], l: [A[0], 'Lunch box 5, out of the freezer the night before. ' + A[1], null, A[3], 'batch'], s: sn[4], d: [tr[0], 'Your Friday treat. ' + tr[1], null, tr[3], 'treat'] },
+    { b: br[3], l: ['Chicken salad wrap or leftovers', 'Whatever is left from the week, or a wrap with salad.', null, 0], s: sn[5], d: dn[4] },
+    { b: br[2], l: ['Taste as you cook', 'A small plate of what you\'re batch cooking.', null, 0], s: sn[6], d: [A[0], 'Fresh from today\'s batch, plus salad.', null, A[3], 'batch'] }
+  ];
+  // Shopping: add up portions, then packs
+  const use = {};
+  const add = o => { for (const k in o) use[k] = (use[k] || 0) + o[k]; };
+  days.forEach(d => { add(d.b[2]); add(d.s[1]); if (d.d[2]) add(d.d[2]); });
+  // Batch amounts are written for 2 servings: A makes 4 (3 boxes + Sunday dinner), B makes 2.
+  add(A[2]); add(A[2]); add(B[2]); add(tr[2]); add(REGULARS);
+  (EXTRAS[w] ? EXTRAS[w][3] : []).forEach(k => delete use[k]);
+  const list = Object.entries(use).map(([k, u]) => { const [name, price, aisle, per] = ITEMS[k]; const packs = Math.max(1, Math.ceil(u / per)); return { k, name, aisle, shop: aisle === 'African shop' ? 'African shop' : 'Lidl', packs, cost: packs * price, pantry: PANTRY.includes(k), est: ESTIMATED.includes(k) }; });
+  list.sort((a, b) => AISLES.indexOf(a.aisle) - AISLES.indexOf(b.aisle) || a.name.localeCompare(b.name));
+  const total = list.reduce((s, i) => s + i.cost, 0), fresh = list.reduce((s, i) => s + (i.pantry ? 0 : i.cost), 0);
+  const extra = EXTRAS[w] || null;
+  return { w, A, B, tr, days, list, total, fresh, extra };
+}
+function weekStart(w) { const d = new Date(START); d.setDate(START.getDate() + w * 7); return d; }
+// From Friday to Sunday you're shopping for next week.
+function defaultWeek(now) { const dow = now.getDay(), cur = Math.max(0, Math.floor((now - START) / (7 * 864e5))); return now >= START && (dow === 5 || dow === 6 || dow === 0) ? cur + 1 : cur; }
+// Recipes: meal name → [serves, ingredients, steps]. Batch recipes make 4 portions.
+const RECIPES = {
+  'Fruit salad bowl with yoghurt and honey': ['1', ['Handful of grapes', '4–5 pineapple chunks', '1 kiwi, peeled and sliced', '1 easy peeler, segmented', '3 big spoons natural yoghurt', '1 teaspoon honey'], ['Chop the fruit into a bowl. On Sunday you can cut 3 days\' worth into a tub.', 'Spoon the yoghurt on top.', 'Drizzle the honey over.']],
+  'Egg and pepper wrap': ['1', ['2 eggs', '½ red bell pepper, diced', '1 spring onion, sliced', 'Pinch of salt and all-purpose seasoning', '1 tortilla wrap', '1 teaspoon oil'], ['Fry the pepper and spring onion in the oil for 2 minutes.', 'Beat the eggs with the seasoning, pour in and scramble for 1–2 minutes.', 'Warm the wrap in a dry pan for 20 seconds.', 'Fill and roll.']],
+  'Oats with banana and honey': ['1', ['50g porridge oats', '300ml lactose-free milk', '1 banana', '1 teaspoon honey'], ['Mix the oats and milk in a big bowl.', 'Microwave 2 minutes, stir, then 30 seconds more.', 'Slice the banana on top and add the honey.']],
+  'Spring onion omelette and a wrap': ['1', ['3 eggs', '2 spring onions, sliced', '1 salad tomato, diced', 'Salt, pepper, seasoning', '1 teaspoon oil', '1 tortilla wrap'], ['Beat the eggs with the spring onion, tomato and seasoning.', 'Pour into a hot oiled pan and cook 2 minutes without stirring.', 'Fold in half and cook 1 more minute.', 'Eat with the warmed wrap, or roll it inside.']],
+  'Dodo and egg': ['1', ['½ ripe plantain (yellow with black spots)', '2 eggs', '½ red bell pepper, diced', '¼ onion, diced', 'Spray of oil, pinch of salt'], ['Slice the plantain on an angle, spray with oil and salt.', 'Air fry at 200°C for 10–12 minutes, turning once. In the oven it takes 20 minutes.', 'Meanwhile fry the pepper and onion for 2 minutes, add the beaten eggs and scramble.', 'Serve the dodo beside the egg.']],
+  'Eggs in spicy tomato with a wrap': ['1', ['1 tin plum tomatoes', '½ onion, sliced', '¼–½ scotch bonnet, chopped', '2 eggs', '1 teaspoon oil', 'Stock cube or seasoning', '1 tortilla wrap'], ['Fry the onion in the oil for 3 minutes.', 'Add the tomatoes (crush them with a spoon), scotch bonnet and seasoning. Simmer 8 minutes.', 'Make 2 wells and crack an egg into each.', 'Lid on, low heat, 5–6 minutes until the whites are set.', 'Scoop up with the wrap.']],
+  'Overnight oats with berries': ['1', ['50g porridge oats', '150ml lactose-free milk', 'Handful of frozen berries', '1 teaspoon honey (optional)'], ['Mix everything in a tub or jar the night before.', 'Leave in the fridge overnight.', 'Eat cold, or microwave 1 minute.']],
+  'Scrambled egg bap with tomato': ['1', ['2 eggs', 'Splash of lactose-free milk', '1 large white bap', '1 salad tomato, sliced', 'Salt and pepper'], ['Beat the eggs with the milk and seasoning.', 'Scramble on low heat, stirring, for 2–3 minutes.', 'Split the bap and fill with the egg and tomato.']],
+
+  'Jollof rice and chicken': ['4', ['300g basmati rice', '4 chicken legs', '4 red bell peppers', '2 tins plum tomatoes', '1 scotch bonnet', '2 onions', '2 tablespoons tomato purée', '2 tablespoons oil', '2 stock cubes', '1 teaspoon curry powder, 1 teaspoon thyme, 2 bay leaves', '600ml water', 'Salad to serve'], ['Season the chicken legs with a stock cube, curry powder, thyme and a little onion. Bake at 200°C for 40 minutes.', 'Blend the bell peppers, tomatoes, scotch bonnet and 1 onion until smooth.', 'Slice the other onion and fry it in the oil for 2 minutes. Add the purée and fry 2 minutes more.', 'Pour in the blend and fry on medium for 20–25 minutes, stirring, until it thickens and the oil rises to the top.', 'Add the water, the other stock cube, curry, thyme, bay leaves and salt. Bring to the boil.', 'Wash the rice, stir it in, then cover with foil and the lid. Cook on low for 25–30 minutes, stirring once halfway. Add a splash of water if it dries out before the rice is soft.', 'Serve with a chicken leg (skin off) and salad.']],
+  'Mince dirty rice': ['4', ['500g lean pork mince (5% fat)', '300g basmati rice', '1 onion, diced', '2 red bell peppers, diced', '3 spring onions, sliced', '2 garlic cloves', '2 teaspoons Cajun or all-purpose seasoning', '1 teaspoon paprika', '1 stock cube in 600ml water'], ['Brown the mince in a dry pan for 8–10 minutes with the onion and garlic.', 'Add the peppers, Cajun seasoning and paprika. Cook 3 minutes.', 'Cook the rice in the stock, lid on, for about 15 minutes until the water is absorbed.', 'Fold the mince through the rice and top with spring onion.']],
+  'Spaghetti bolognese': ['4', ['500g lean beef mince (5% fat)', '1 onion, diced', '2 garlic cloves', '2 tins plum tomatoes', '2 tablespoons tomato purée', '200g frozen mixed veg', '1 stock cube', '1 teaspoon mixed herbs', '300g spaghetti'], ['Brown the mince with the onion and garlic for 10 minutes.', 'Stir in the purée for 1 minute.', 'Add the tomatoes, stock cube, herbs and mixed veg. Simmer 25 minutes, lid half on.', 'Boil the spaghetti for 10 minutes and drain.', 'Box one fist of spaghetti with plenty of sauce.']],
+  'Rice and chicken stew with spinach': ['4', ['4 chicken thighs', '300g basmati rice', '2 tins plum tomatoes', '3 red bell peppers', '1 scotch bonnet', '2 onions', '2 tablespoons oil', '2 stock cubes', 'Curry powder and thyme', '250g frozen spinach'], ['Season the thighs and bake at 200°C for 35 minutes.', 'Blend the tomatoes, bell peppers, scotch bonnet and 1 onion.', 'Fry the other onion, sliced, in the oil. Add the blend and fry 25 minutes until thick.', 'Add the chicken and its juices, stock cubes and thyme. Simmer 10 minutes.', 'Stir in the spinach for the last 5 minutes.', 'Boil the rice and serve one fist with the stew.']],
+  'Nigerian fried rice and chicken': ['4', ['300g basmati rice', '4 chicken thighs', '300g frozen mixed veg', '1 tin sweetcorn, drained', '1 red bell pepper, diced', '3 spring onions', '1 onion, diced', '2 teaspoons curry powder, 1 teaspoon thyme', '2 stock cubes', '2 tablespoons oil'], ['Season and bake the thighs at 200°C for 35 minutes. Keep the juices.', 'Parboil the rice in 500ml water with the stock cubes, curry and thyme for about 12 minutes, until just cooked and dry.', 'Fry the onion in the oil, add the mixed veg, bell pepper and sweetcorn, and cook 3 minutes.', 'Add the rice and the chicken juices. Stir-fry 5 minutes.', 'Finish with spring onion and serve with the chicken.']],
+  'Party pasta with pork mince': ['4', ['400g macaroni', '500g lean pork mince', '1 tin plum tomatoes', '2 tablespoons tomato purée', '2 red bell peppers', '1 scotch bonnet', '1 onion', '1 tin sweetcorn', 'Curry powder, thyme, 1 stock cube'], ['Brown the mince with half the onion.', 'Blend the tomatoes, bell peppers, scotch bonnet and the rest of the onion. Add with the purée and fry 15 minutes.', 'Season with the curry, thyme and stock cube.', 'Boil the macaroni for 2 minutes less than the packet says. Drain.', 'Stir it into the sauce with the sweetcorn and simmer 3 minutes.']],
+  'Chicken and pepper stir-fry noodles': ['4', ['4 nests egg noodles (about 250g)', '2 chicken breasts, sliced', '2 bags mixed pepper stir fry', '3 spring onions', '2 garlic cloves', '3 tablespoons soy sauce', '1 tablespoon honey', 'Chilli flakes or a little scotch bonnet', '1 tablespoon oil'], ['Cook the noodles for 4 minutes and drain.', 'Fry the chicken in the oil on high for 6–8 minutes. Add the garlic.', 'Add the stir-fry veg and cook 3 minutes.', 'Add the noodles, soy sauce, honey and chilli. Toss 2 minutes and finish with spring onion.']],
+  'Chicken curry and rice': ['4', ['4 chicken thighs, diced', '1 onion', '2 garlic cloves', '2 tablespoons curry powder', '1 tin light coconut milk', '1 tin plum tomatoes', '200g frozen spinach', '1 stock cube', '1 tablespoon oil', '300g basmati rice'], ['Fry the onion in the oil for 5 minutes. Add the garlic and curry powder for 1 minute.', 'Add the chicken and cook 5 minutes.', 'Pour in the tomatoes, coconut milk and stock cube. Simmer 25 minutes.', 'Stir in the spinach for 5 minutes.', 'Serve with one fist of rice.']],
+  'Chicken burrito bowl': ['4', ['2 chicken breasts', '1 teaspoon each paprika, cumin, garlic powder, salt', '300g basmati rice', 'Juice of ½ lemon', '1 tin sweetcorn', '2 red bell peppers, sliced', 'Salad and tomatoes', 'Hot sauce (optional)'], ['Rub the chicken with the spices and bake at 200°C for 22–25 minutes. Slice.', 'Cook the rice and stir in the lemon juice.', 'Char the bell peppers in a hot dry pan for 5 minutes.', 'Box the rice, chicken, sweetcorn and peppers. Add salad and tomato on the day.']],
+  'Chilli mince and rice': ['4', ['500g lean beef mince', '1 onion', '2 garlic cloves', '1 tin plum tomatoes', '2 red bell peppers', '1 tin sweetcorn', '2 teaspoons chilli powder, 1 teaspoon cumin, 1 teaspoon paprika', '1 stock cube', '300g basmati rice'], ['Brown the mince with the onion and garlic.', 'Add the spices for 1 minute.', 'Add the tomatoes, bell peppers and stock cube. Simmer 25 minutes.', 'Stir in the sweetcorn for the last 5 minutes.', 'Serve with one fist of rice.']],
+  'Jollof spaghetti and chicken': ['4', ['400g spaghetti', '4 chicken legs', '1 tin plum tomatoes', '2 tablespoons tomato purée', '3 red bell peppers', '1 scotch bonnet', '1 onion', '2 tablespoons oil', 'Curry powder, thyme, 2 stock cubes', '500ml water'], ['Season and bake the chicken legs at 200°C for 40 minutes.', 'Blend the tomatoes, bell peppers, scotch bonnet and half the onion.', 'Fry the rest of the onion with the purée in the oil, add the blend and fry 15 minutes.', 'Add the water, stock cubes, curry and thyme and bring to the boil.', 'Break the spaghetti in half, add it, cover and cook 12–15 minutes, stirring so it doesn\'t stick, until the liquid is absorbed.']],
+
+  'Chicken legs, sweet potato fries and salad': ['1', ['2 chicken legs', 'Seasoning, curry powder, thyme', 'Handful of sweet potato fries', 'Salad'], ['Season the legs and roast at 200°C for 40 minutes. In the air fryer it takes 25 minutes.', 'Put the fries in for the last 20 minutes.', 'Take the skin off and serve with salad.']],
+  'Chicken pepper soup': ['1', ['2 chicken legs, cut in pieces', '1 tablespoon pepper soup spice', '½ scotch bonnet', '½ onion', '1 stock cube', '700ml water', 'Scent leaves or basil (optional)'], ['Boil the chicken with the onion, stock cube and salt for 15 minutes.', 'Add the pepper soup spice and scotch bonnet. Simmer 20 minutes more.', 'Add the leaves at the end. Serve hot.']],
+  'Spicy sardine tomato spaghetti': ['1', ['1 tin sardines in spicy tomato', '100g spaghetti', 'Handful of frozen spinach', '½ onion', '1 garlic clove', '1 teaspoon oil'], ['Boil the spaghetti for 10 minutes.', 'Fry the onion and garlic for 3 minutes.', 'Add the sardines and break them up. Add the spinach and a splash of pasta water and cook 3 minutes.', 'Toss in the spaghetti.']],
+  'Chicken fajita wraps': ['1', ['1 chicken breast, sliced', '½ bag mixed pepper stir fry', '1 teaspoon paprika, ½ teaspoon cumin, garlic', '2 tortilla wraps', 'Salad, squeeze of lemon'], ['Fry the chicken with the spices for 6 minutes.', 'Add the peppers and cook 3 minutes.', 'Fill the warmed wraps with chicken, peppers and salad.']],
+  'Homemade chicken dippers and sweet potato fries': ['1', ['1 chicken breast, cut in strips', '1 egg, beaten', '3 tablespoons breadcrumbs or crushed cornflakes', '½ teaspoon paprika, salt', 'Spray of oil', 'Sweet potato fries and salad'], ['Dip the strips in the egg, then in the crumbs mixed with paprika and salt.', 'Spray with oil and air fry at 200°C for 12 minutes, turning halfway. In the oven it takes 18 minutes.', 'Cook the fries alongside and serve with salad.']],
+  'Pork mince lettuce tacos': ['1', ['150g lean pork mince', '¼ onion, diced', '1 teaspoon paprika, ½ teaspoon cumin, chilli', 'Little gem leaves', '1 tomato, diced', '1 wrap (optional)'], ['Brown the mince in a dry pan with the onion and spices for 8 minutes.', 'Spoon into lettuce cups (or the wrap) and top with tomato.']],
+  'Steak strip stir-fry with rice': ['1', ['150g steak slices', '½ bag mixed pepper stir fry', '2 spring onions', '1 garlic clove', '1 tablespoon soy sauce', '1 teaspoon honey', 'One fist of cooked rice'], ['Get the pan very hot. Fry the steak 2 minutes, then take it out.', 'Fry the veg and garlic 3 minutes.', 'Put the steak back with the soy and honey for 1 minute.', 'Serve on the rice with spring onion.']],
+  'Honey BBQ chicken legs and corn on the cob': ['1', ['2 chicken legs', '2 tablespoons honey BBQ sauce', '1 corn on the cob', 'Salad'], ['Bake the legs at 200°C for 30 minutes.', 'Brush with the BBQ sauce and bake 10 minutes more.', 'Boil the corn for 6–8 minutes.', 'Serve with salad.']],
+  'Egg fried rice with veg': ['1', ['One fist of cooked rice (cold is best)', '2 eggs', 'Handful of frozen mixed veg', '2 spring onions', '1 tablespoon soy sauce', '1 teaspoon oil'], ['Fry the veg in the oil for 3 minutes.', 'Push it to the side and scramble the eggs.', 'Add the rice and soy. Stir-fry 4 minutes.', 'Finish with spring onion.']],
+  'Chicken stew with baked dodo': ['1', ['2 chicken thighs', '1 tin plum tomatoes', '1 red bell pepper', '½ scotch bonnet', '½ onion', '1 tablespoon oil', 'Stock cube, curry, thyme', '½ ripe plantain'], ['Bake the thighs at 200°C for 35 minutes.', 'Blend the tomatoes, bell pepper, scotch bonnet and onion. Fry in the oil for 15–20 minutes.', 'Add the stock cube, thyme and chicken and simmer 5 minutes.', 'Bake the sliced plantain at 200°C for 15–20 minutes and serve on the side.']],
+
+  'Efo riro with beef and eba': ['1', ['150g diced beef', '200g frozen spinach, thawed and squeezed', '½ tin plum tomatoes', '1 red bell pepper', '½ scotch bonnet', '½ onion', '1 tablespoon palm oil', '1 stock cube', 'Iru (locust beans) and crayfish (optional)', 'Eba: one fist of garri and boiling water'], ['Boil the beef with onion, the stock cube and salt for 30–40 minutes until tender. You can do this on Sunday.', 'Blend the tomatoes, bell pepper, scotch bonnet and onion. Fry in the palm oil for 15 minutes.', 'Add the beef, a little of its stock, and the iru and crayfish. Cook 5 minutes.', 'Stir in the spinach and cook 5 minutes.', 'Eba: pour boiling water over the garri to just cover it, leave 1 minute, then stir hard into a smooth ball.']],
+  'Efo riro with chicken and eba': ['1', ['2 chicken thighs', '200g frozen spinach, thawed and squeezed', '½ tin plum tomatoes', '1 red bell pepper', '½ scotch bonnet', '½ onion', '1 tablespoon palm oil', '1 stock cube', 'Iru and crayfish (optional)', 'One fist of garri'], ['Boil or bake the thighs with seasoning for 30 minutes.', 'Blend the tomatoes, bell pepper, scotch bonnet and onion. Fry in the palm oil for 15 minutes.', 'Add the chicken, iru and crayfish for 5 minutes.', 'Stir in the spinach for 5 minutes.', 'Make the eba with boiling water and stir hard until smooth.']],
+  'Efo riro with chicken legs and eba': ['1', ['2 chicken legs', '200g frozen spinach, thawed and squeezed', '½ tin plum tomatoes', '1 red bell pepper', '½ scotch bonnet', '½ onion', '1 tablespoon palm oil (one thumb)', '1 stock cube', 'One fist of garri'], ['Boil the legs with onion, stock cube and salt for 30 minutes.', 'Blend the tomatoes, bell pepper, scotch bonnet and onion. Fry in the palm oil for 15 minutes.', 'Add the chicken and a little stock for 5 minutes, then the spinach for 5 minutes.', 'Make the eba and serve.']],
+  'Okra soup with beef and eba': ['1', ['150g diced beef', '200g frozen chopped okra', '1 red bell pepper', '½ scotch bonnet', '½ onion', '1 tablespoon palm oil', '1 stock cube', 'Crayfish (optional)', 'One fist of garri'], ['Boil the beef with onion, the stock cube and salt for 30–40 minutes until tender. Keep 300ml of the stock.', 'Blend the bell pepper, scotch bonnet and onion. Fry in the palm oil for 5 minutes.', 'Add the beef and stock and bring to the boil. Add the crayfish.', 'Add the okra and cook 5–7 minutes, lid off. Don\'t overcook it, so it stays drawy.', 'Make the eba and serve.']],
+  'Okra soup with chicken and eba': ['1', ['2 chicken thighs', '200g frozen chopped okra', '1 red bell pepper', '½ scotch bonnet', '½ onion', '1 tablespoon palm oil', '1 stock cube', 'One fist of garri'], ['Boil the thighs with onion, stock cube and salt for 25 minutes. Keep 300ml stock.', 'Fry the blended bell pepper, scotch bonnet and onion in the palm oil for 5 minutes.', 'Add the chicken and stock and boil.', 'Add the okra for 5–7 minutes, lid off.', 'Make the eba and serve.']],
+  'Okra and efo mix with beef and eba': ['1', ['150g diced beef', '150g frozen chopped okra', 'Handful of frozen spinach', '½ scotch bonnet', '½ onion', '1 tablespoon palm oil', '1 stock cube', 'One fist of garri'], ['Boil the beef until tender, about 30–40 minutes. Keep 300ml stock.', 'Fry the blended scotch bonnet and onion in the palm oil for 5 minutes.', 'Add the beef and stock and boil, then the okra for 5 minutes.', 'Stir in the spinach for the last 2 minutes.', 'Make the eba and serve.']],
+
+  'Suya beef wraps': ['1', ['150g steak slices', 'Suya-style spice with no peanuts: 1 tsp paprika, ½ tsp ginger, ½ tsp garlic powder, chilli, ½ stock cube crumbled', '1 teaspoon oil', '2 tortilla wraps', 'Red onion, tomato and cucumber, sliced'], ['Toss the steak with the spice and oil.', 'Air fry or grill at 200°C for 6–8 minutes, or 3 minutes in a very hot pan.', 'Fill the wraps with the beef, onion, tomato and cucumber.']],
+  'Homemade burger and sweet potato fries': ['1', ['1 lean beef burger', '1 large white bap', 'Handful of sweet potato fries', 'Salad and a tomato slice'], ['Air fry or grill the burger for 12 minutes, turning once.', 'Cook the fries for 20 minutes.', 'Toast the bap and build the burger with salad and tomato.']],
+  'Hot dogs with fried onions': ['1', ['2 frankfurters', '1–2 white baps', '1 onion, sliced', 'Ketchup or mustard', 'Side salad'], ['Simmer the frankfurters in water for 5 minutes.', 'Fry the onion slowly for 8 minutes until soft and golden.', 'Fill the baps and serve with salad.']],
+  'BBQ chicken baps': ['1', ['2 chicken thighs', '2 tablespoons honey BBQ sauce', '1 large white bap', 'Cucumber and salad'], ['Bake the thighs at 200°C for 35 minutes.', 'Shred with 2 forks and mix with the BBQ sauce.', 'Fill the bap with the chicken, cucumber and salad.']],
+  'Chicken salad wrap or leftovers': ['1', ['1 tortilla wrap', 'Leftover chicken', 'Salad, tomato and cucumber', 'A little light salad cream'], ['Warm the wrap.', 'Fill with chicken, salad, tomato and cucumber.', 'Add a little salad cream and roll.']]
+};
+/*GEN-END*/
+
+(() => {
+  const $ = id => document.getElementById(id);
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem('mo-kitchen3-' + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+    set(k, v) { try { localStorage.setItem('mo-kitchen3-' + k, JSON.stringify(v)); } catch {} }
+  };
+  const gbp = n => '£' + n.toFixed(2);
+  const fmtD = d => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+
+  const tabs = [...document.querySelectorAll('[role=tab]')];
+  function showTab(id) { tabs.forEach(t => { const on = t.id === id; t.setAttribute('aria-selected', on); $(t.getAttribute('aria-controls')).hidden = !on; }); store.set('tab', id); }
+  tabs.forEach(t => t.addEventListener('click', () => showTab(t.id)));
+  const hashTab = { week: 't-week', shop: 't-shop', sunday: 't-sun', plate: 't-plate', habits: 't-hab' }[location.hash.slice(1)];
+  showTab(hashTab || store.get('tab', 't-week'));
+
+  const now = new Date();
+  const thisWeek = Math.max(0, Math.floor((now - START) / (7 * 864e5)));
+  let W = defaultWeek(now), plan, cur;
+  let ate = store.get('ate', {}), got = store.get('got', {});
+  const tickSvg = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 6.5 12 13 4.5" fill="none" stroke="var(--panel)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const LBL = { b: 'Breakfast', l: 'Lunch', s: 'Snack', d: 'Dinner' };
+  const DN = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], DL = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+  function setWeek(w) {
+    W = Math.max(0, w); plan = buildWeek(W);
+    const s = weekStart(W), e = new Date(s); e.setDate(s.getDate() + 6);
+    const shop = new Date(s); shop.setDate(s.getDate() - 2);
+    $('wkLabel').innerHTML = `Week ${W + 1}: ${fmtD(s)} – ${fmtD(e)}<small>Shop Sat ${fmtD(shop)} · Cook Sun ${fmtD(new Date(s.getTime() - 864e5))}</small>`;
+    $('wkPill').hidden = W !== thisWeek || now < START;
+    $('wkPrev').disabled = W === 0;
+    cur = (W === thisWeek && now >= START) ? (now.getDay() + 6) % 7 : 0;
+    $('statShop').textContent = '£' + Math.round(plan.fresh) + '–' + Math.round(plan.total);
+    renderDays(); renderMeals(); renderShop(); renderSteps();
+  }
+  $('wkPrev').onclick = () => setWeek(W - 1);
+  $('wkNext').onclick = () => setWeek(W + 1);
+
+  function renderDays() {
+    $('days').innerHTML = '';
+    plan.days.forEach((_, i) => {
+      const dt = weekStart(W); dt.setDate(dt.getDate() + i);
+      const b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-pressed', i === cur);
+      if (['b', 'l', 's', 'd'].every(k => ate[`${W}-${i}${k}`])) b.classList.add('done');
+      b.innerHTML = `<span class="dn">${DN[i]}</span><span class="dd">${fmtD(dt)}</span>`;
+      b.onclick = () => { cur = i; renderDays(); renderMeals(); };
+      $('days').append(b);
+    });
+  }
+  function renderMeals() {
+    const day = plan.days[cur]; $('dayTitle').textContent = DL[cur];
+    $('meals').innerHTML = ''; let n = 0;
+    ['b', 'l', 's', 'd'].forEach(k => {
+      const m = day[k]; const what = m[0], how = k === 's' ? '' : m[1], isNew = k === 's' ? 0 : m[3], tag = k === 's' ? '' : m[4];
+      const key = `${W}-${cur}${k}`; if (ate[key]) n++;
+      const tags = (tag === 'batch' ? '<span class="tag batch">Batch</span>' : tag === 'treat' ? '<span class="tag treat">Treat</span>' : '') + (isNew ? '<span class="tag new">New</span>' : '');
+      const el = document.createElement('div'); el.className = 'meal' + (ate[key] ? ' ate' : '');
+      el.innerHTML = `<div class="when">${LBL[k]}</div><div class="what">${what}${tags}</div><button class="tick" type="button" aria-pressed="${!!ate[key]}" aria-label="Mark ${LBL[k].toLowerCase()} as eaten">${tickSvg}</button><div class="how">${how}</div>`;
+      const r = RECIPES[what.replace(/ with dodo$/, '')];
+      if (r) {
+        const isA = what.startsWith(plan.A[0]), isB = what === plan.B[0];
+        const serves = isA ? 'Batch: make the full amount. 4 portions = 3 lunch boxes + Sunday dinner.' : isB ? 'Batch: halve this for 2 lunch boxes, or make it all and freeze the extra.' : `Serves ${r[0]}`;
+        const det = document.createElement('details');
+        det.innerHTML = `<summary>Recipe</summary><div class="rec"><p class="serves">${serves}</p><div><h4>Ingredients</h4><ul>${r[1].map(x => `<li>${x}</li>`).join('')}</ul></div><div><h4>Method</h4><ol>${r[2].map(x => `<li>${x}</li>`).join('')}</ol></div></div>`;
+        el.append(det);
+      }
+      el.querySelector('.tick').onclick = () => { ate[key] = !ate[key]; store.set('ate', ate); renderDays(); renderMeals(); };
+      $('meals').append(el);
+    });
+    $('dayCount').textContent = `${n} of 4 meals ticked`;
+  }
+  function renderShop() {
+    $('aisles').innerHTML = ''; let left = 0, gotN = 0;
+    if (plan.extra) {
+      const [title, note, items] = plan.extra;
+      const box = document.createElement('div'); box.className = 'aisle';
+      box.innerHTML = `<h3>${title}<span>${gbp(items.reduce((t, i) => t + i[1], 0))}</span></h3><p class="note" style="margin:0 0 4px">${note}</p>`;
+      items.forEach(([nm, pr, shop, est], j) => {
+        const id = `x${W}-${j}`, on = !!got[id];
+        const lab = document.createElement('label'); lab.className = 'item' + (on ? ' got' : ''); lab.htmlFor = id;
+        lab.innerHTML = `<input type="checkbox" id="${id}" ${on ? 'checked' : ''}><span class="nm">${nm}</span><span class="pr">${est ? '<span class="st">est. </span>' : ''}${gbp(pr)}</span>`;
+        lab.querySelector('input').onchange = e => { got[id] = e.target.checked; store.set('got', got); renderShop(); };
+        box.append(lab);
+      });
+      $('aisles').append(box);
+    }
+    AISLES.forEach(a => {
+      const items = plan.list.filter(i => i.aisle === a); if (!items.length) return;
+      const box = document.createElement('div'); box.className = 'aisle';
+      box.innerHTML = `<h3>${a}<span>${gbp(items.reduce((s, i) => s + i.cost, 0))}</span></h3>`;
+      items.forEach(it => {
+        const id = `g${W}-${it.k}`, on = !!got[id]; if (on) gotN++; else left += it.cost;
+        const lab = document.createElement('label'); lab.className = 'item' + (on ? ' got' : ''); lab.htmlFor = id;
+        lab.innerHTML = `<input type="checkbox" id="${id}" ${on ? 'checked' : ''}><span class="nm"><span class="shop">${it.shop}</span>${it.packs > 1 ? it.packs + ' × ' : ''}${it.name}${it.pantry ? '<br><span class="st">Check the cupboard first</span>' : ''}</span><span class="pr">${it.est ? '<span class="st">est. </span>' : ''}${gbp(it.cost)}</span>`;
+        lab.querySelector('input').onchange = e => { got[id] = e.target.checked; store.set('got', got); renderShop(); };
+        box.append(lab);
+      });
+      $('aisles').append(box);
+    });
+    $('shopTotal').innerHTML = `${gbp(plan.total)}<small>or ${gbp(plan.fresh)} if the cupboard items are still there</small>`;
+    $('shopBar').style.width = (gotN / plan.list.length * 100) + '%';
+    $('shopLeft').textContent = gotN === plan.list.length ? 'All done' : `${plan.list.length - gotN} items left · ${gbp(left)}`;
+  }
+  $('shopReset').onclick = () => { Object.keys(got).filter(k => k.startsWith(`g${W}-`)).forEach(k => delete got[k]); store.set('got', got); renderShop(); };
+
+  const timers = {};
+  function renderSteps() {
+    Object.values(timers).forEach(t => clearInterval(t)); for (const k in timers) delete timers[k];
+    const { A, B } = plan;
+    $('sunTitle').textContent = `Sunday cook: ${A[0]} + ${B[0]}`;
+    const steps = [['Chop and prep', 'Onions, peppers, garlic and spring onions for both dishes. Season the meat.', 0]];
+    const a = A[5].map(s => [`${A[0]}: ${s[0].toLowerCase()}`, s[1], s[2]]), b = B[5].map(s => [`${B[0]}: ${s[0].toLowerCase()}`, s[1], s[2]]);
+    for (let i = 0; i < Math.max(a.length, b.length); i++) { if (a[i]) steps.push(a[i]); if (b[i]) steps.push(b[i]); }
+    steps.push(['Box it up', `3 boxes of ${A[0].toLowerCase()} (Mon, Wed, Fri) and 2 of ${B[0].toLowerCase()} (Tue, Thu). Freeze the Thursday and Friday boxes. Keep a portion of ${A[0].toLowerCase()} for tonight.`, 0]);
+    $('steps').innerHTML = '';
+    steps.forEach(([h, p, mins], i) => {
+      const li = document.createElement('li'); li.className = 'step';
+      li.innerHTML = `<div class="d"><h3>${h}</h3>${p ? `<p>${p}</p>` : ''}</div>${mins ? `<button class="btn timer" type="button" id="tm${i}">${mins} min</button>` : '<span></span>'}`;
+      $('steps').append(li);
+      if (mins) {
+        const btn = li.querySelector('button');
+        btn.onclick = () => {
+          if (timers[i]) { clearInterval(timers[i]); delete timers[i]; btn.classList.remove('run', 'fin'); btn.textContent = mins + ' min'; return; }
+          const end = Date.now() + mins * 60000; btn.classList.add('run');
+          const tick = () => { const left = Math.max(0, end - Date.now()), m = Math.floor(left / 60000), s = Math.floor(left / 1000) % 60;
+            btn.textContent = `${m}:${String(s).padStart(2, '0')}`;
+            if (!left) { clearInterval(timers[i]); delete timers[i]; btn.classList.replace('run', 'fin'); btn.textContent = 'Done'; } };
+          timers[i] = setInterval(tick, 1000); tick();
+        };
+      }
+    });
+  }
+
+  const PL = {
+    sVeg: ['Half the plate is vegetables', 'Fills you up for very few calories, and gives the fibre that keeps energy steady. Stews count when they\'re mostly vegetables.', ['Salad', 'Spinach / efo', 'Peppers', 'Cucumber', 'Sweetcorn', 'Mixed veg', 'Carrot batons', 'Tomatoes']],
+    sPro: ['A quarter is protein', 'Protein keeps you full longest and protects muscle while you lean out. Have some at every meal, breakfast included.', ['Chicken legs, skin off', 'Chicken breast', '5% pork or beef mince', 'Steak slices', 'Eggs', 'Sardines', 'Yoghurt']],
+    sCarb: ['A quarter is carbs', 'Carbs are your fuel, so keep them but measure them. One fist of rice, pasta or swallow.', ['Jollof or rice, one fist', 'Spaghetti or macaroni, one fist', 'Eba, one fist', 'Sweet potato fries, a handful', 'Plantain, half', 'One wrap or one bap', 'Oats']]
+  };
+  function plate(id) {
+    Object.keys(PL).forEach(k => $(k).classList.toggle('on', k === id));
+    const [t, x, c] = PL[id]; $('plTitle').textContent = t; $('plText').textContent = x;
+    $('plChips').innerHTML = c.map(s => `<span class="chip">${s}</span>`).join('');
+  }
+  Object.keys(PL).forEach(k => { const p = $(k); p.setAttribute('tabindex', '0'); p.setAttribute('role', 'button'); p.onclick = () => plate(k); p.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); plate(k); } }; });
+  plate('sVeg');
+  const SW = [['4 cartons of apple juice', '2 cartons, half and half with water'], ['Cola and orangeade', 'Diet or zero versions, or water'], ['1kg bag of frozen dippers', 'Homemade air-fryer dippers'], ['Jam doughnut, brioche and digestives every shop', 'Pick one treat a week'], ['Beef mince 25% fat', '5% fat mince'], ['Golden syrup porridge sachets', 'Plain oats with banana and honey'], ['McDonald\'s at lunch', 'The box from Sunday']];
+  $('swaps').innerHTML = SW.map(([a, b]) => `<div class="swap"><span class="from">${a}</span><span class="arr" aria-hidden="true">→</span><span class="to">${b}</span></div>`).join('');
+
+  const dayKey = new Date().toISOString().slice(0, 10);
+  let water = store.get('water', {}), wn = water[dayKey] || 0;
+  function renderWater() {
+    $('glasses').innerHTML = '';
+    for (let i = 0; i < 8; i++) {
+      const g = document.createElement('button'); g.type = 'button'; g.className = 'glass' + (i < wn ? ' full' : '');
+      g.setAttribute('aria-label', `Glass ${i + 1}${i < wn ? ', drunk' : ''}`); g.innerHTML = '<i></i>';
+      g.onclick = () => { wn = i < wn ? i : i + 1; water = { [dayKey]: wn }; store.set('water', water); renderWater(); };
+      $('glasses').append(g);
+    }
+    $('waterNote').textContent = wn >= 8 ? 'Done for today.' : `${wn} of 8 glasses · ${wn * 0.25} litres`;
+  }
+  renderWater();
+  let streak = store.get('streak', 0);
+  const showStreak = () => { $('streak').textContent = streak; };
+  $('streakAdd').onclick = () => { streak++; store.set('streak', streak); showStreak(); };
+  $('streakReset').onclick = () => { streak = 0; store.set('streak', streak); showStreak(); };
+  showStreak();
+
+  setWeek(W);
+})();
+</script>
+</body>
+</html>
