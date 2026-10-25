@@ -154,6 +154,29 @@ h3 { font: 650 1rem/1.25 var(--display); font-stretch: 92%; margin: 0; }
 .glass.full i { height: 80%; }
 .streak { font: 700 3.2rem/1 var(--display); font-stretch: 78%; font-variant-numeric: tabular-nums; color: var(--leaf); }
 .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.today { display: flex; flex-wrap: wrap; gap: 6px; margin: -4px 0 14px; }
+.today span { font-size: .8rem; font-weight: 600; padding: 4px 10px; border-radius: 999px; background: var(--grid); }
+.today span.str { background: var(--pepper-soft); color: var(--pepper); }
+.meal .when small { display: block; font-weight: 500; letter-spacing: 0; text-transform: none; margin-top: 2px; }
+.wchart { width: 100%; height: auto; display: block; margin: 6px 0 4px; }
+.wchart text { font: 500 11px var(--body); fill: var(--graphite); }
+.wchart .gl { stroke: var(--grid); }
+.wchart .tl { stroke: var(--flow); stroke-width: 2; stroke-dasharray: 6 5; fill: none; }
+.wchart .ml { stroke: var(--leaf); stroke-width: 3; fill: none; stroke-linejoin: round; }
+.wchart .cp { fill: var(--panel); stroke: var(--flow); stroke-width: 2; }
+.wchart .me { fill: var(--leaf); }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: .82rem; color: var(--graphite); }
+.legend i { display: inline-block; width: 18px; height: 0; border-top: 3px solid var(--leaf); vertical-align: middle; margin-right: 6px; }
+.legend i.t { border-top: 2px dashed var(--flow); }
+.cps { list-style: none; margin: 10px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr)); gap: 8px; }
+.cps li { border: 1px solid var(--rule); border-radius: 12px; padding: 10px 12px; background: var(--paper); }
+.cps li b { display: block; font: 650 1.3rem/1.1 var(--display); font-stretch: 85%; font-variant-numeric: tabular-nums; }
+.cps li span { font-size: .82rem; color: var(--graphite); }
+.cps li.hit { background: var(--leaf-soft); border-color: color-mix(in srgb, var(--leaf) 40%, var(--rule)); }
+.wk7 { display: grid; gap: 6px; margin-top: 8px; }
+.wk7 div { display: grid; grid-template-columns: 52px 1fr; gap: 10px; padding: 8px 12px; border-radius: 10px; background: var(--paper); border: 1px solid var(--rule); font-size: .92rem; }
+.wk7 b { font: 650 .95rem var(--display); font-stretch: 90%; }
+.wk7 div.on { border-color: var(--ink); }
 .foot { margin-top: 36px; color: var(--graphite); font-size: .82rem; max-width: 70ch; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
@@ -180,6 +203,7 @@ h3 { font: 650 1rem/1.25 var(--display); font-stretch: 92%; margin: 0; }
     <div class="stat"><div class="k">Your Lidl shop</div><div class="v">£25–54</div><div class="s">a trip, from 4 receipts (Aug–Oct)</div></div>
     <div class="stat"><div class="k">McDonald's visits</div><div class="v bad">17</div><div class="s">in 6 months, £78 in total</div></div>
     <div class="stat"><div class="k">Apple juice</div><div class="v bad">4</div><div class="s">cartons on every receipt</div></div>
+    <div class="stat"><div class="k">Weight goal</div><div class="v" id="statWeight">114 → 85kg</div><div class="s">by your birthday, 16 July 2027</div></div>
     <div class="stat"><div class="k">This week's shop</div><div class="v good" id="statShop">£0</div><div class="s">estimated, Lidl prices</div></div>
   </section>
 
@@ -197,12 +221,14 @@ h3 { font: 650 1rem/1.25 var(--display); font-stretch: 92%; margin: 0; }
     <button role="tab" id="t-shop" aria-controls="p-shop" aria-selected="false">Shopping list</button>
     <button role="tab" id="t-sun" aria-controls="p-sun" aria-selected="false">Sunday cook</button>
     <button role="tab" id="t-plate" aria-controls="p-plate" aria-selected="false">Plate guide</button>
+    <button role="tab" id="t-goal" aria-controls="p-goal" aria-selected="false">Weight plan</button>
     <button role="tab" id="t-hab" aria-controls="p-hab" aria-selected="false">Habits</button>
   </div>
 
   <section class="panel" role="tabpanel" id="p-week" aria-labelledby="t-week">
     <div class="panel-head"><h2 id="dayTitle">Monday</h2><p class="note" id="dayCount">Tick meals as you eat them</p></div>
     <div class="days" id="days"></div>
+    <div class="today" id="today" aria-label="Today's targets"></div>
     <div class="meals" id="meals"></div>
   </section>
 
@@ -252,6 +278,48 @@ h3 { font: 650 1rem/1.25 var(--display); font-stretch: 92%; margin: 0; }
     <div class="swaps" id="swaps"></div>
   </section>
 
+  <section class="panel" role="tabpanel" id="p-goal" aria-labelledby="t-goal" hidden>
+    <div class="panel-head"><h2>85kg by your 30th birthday</h2><p class="note" id="goalNote"></p></div>
+    <div class="stats" style="box-shadow:none">
+      <div class="stat"><div class="k">Started</div><div class="v">114kg</div><div class="s">25 Oct 2026 · BMI 38</div></div>
+      <div class="stat"><div class="k">Latest weigh-in</div><div class="v" id="gLatest">114kg</div><div class="s" id="gLatestS"></div></div>
+      <div class="stat"><div class="k">On-track weight today</div><div class="v" id="gTarget"></div><div class="s">the dashed line</div></div>
+      <div class="stat"><div class="k">Still to lose</div><div class="v good" id="gLeft"></div><div class="s">to reach 85kg · BMI 28</div></div>
+    </div>
+    <svg class="wchart" id="wchart" viewBox="0 0 640 250" role="img" aria-label="Weight chart: target line from 114kg to 85kg, with your weigh-ins"></svg>
+    <div class="legend"><span><i></i>Your weigh-ins</span><span><i class="t"></i>On-track line, about 0.75kg a week</span></div>
+    <ul class="cps" id="cps"></ul>
+
+    <div class="cols" style="margin-top:24px">
+      <div>
+        <h3>Every day</h3>
+        <div class="hands" style="margin-top:8px">
+          <div class="hand"><b>2,000 kcal</b><span>Breakfast 400 · Lunch 550 · Snack 250 · Dinner 600 · 200 spare</span></div>
+          <div class="hand"><b>130g protein</b><span>Chicken legs ×2 ≈ 50g · 3 eggs ≈ 20g · Greek yoghurt ≈ 15g</span></div>
+          <div class="hand"><b>10,000 steps</b><span>Check the Health app on your iPhone</span></div>
+          <div class="hand"><b>2 litres water</b><span>Tick it on the Habits tab</span></div>
+        </div>
+        <p class="note" style="margin-top:10px">The meals on the Week tab are already sized for this: one fist of rice, pasta or eba, half the plate vegetables, one thumb of oil. Take the skin off chicken legs. No juice or fizzy drinks.</p>
+      </div>
+      <div>
+        <h3>Your week</h3>
+        <div class="wk7" id="wk7"></div>
+      </div>
+    </div>
+
+    <h3 style="margin-top:24px">Home workout, 30 minutes</h3>
+    <p class="note" style="margin-top:4px">No gym needed. Do 3 rounds and rest 1 minute between rounds. Every 2 weeks, add 2 reps to each move.</p>
+    <ol style="margin:8px 0 0; padding-left:20px; display:grid; gap:4px; font-size:.95rem">
+      <li>Squats to a chair, 12</li>
+      <li>Press-ups, 8 (knees or against the wall is fine)</li>
+      <li>Reverse lunges, 10 each leg</li>
+      <li>Glute bridges, 15</li>
+      <li>Rows with a full backpack, 12</li>
+      <li>Plank, 20 seconds</li>
+    </ol>
+    <p class="note" style="margin-top:14px">Weigh yourself every Sunday before breakfast and send the number to Akọ̀wé. The chart is updated from your messages. Around 100kg your body burns less, so the calories will be cut a little then. Aim for 0.5–1kg a week. That's the NHS safe rate.</p>
+  </section>
+
   <section class="panel" role="tabpanel" id="p-hab" aria-labelledby="t-hab" hidden>
     <div class="cols">
       <div>
@@ -275,10 +343,10 @@ h3 { font: 650 1rem/1.25 var(--display); font-stretch: 92%; margin: 0; }
       <li>Batch-cook on Sunday. Lunch is always in the box.</li>
       <li>Half the plate is vegetables, and rice, pasta or swallow is one fist.</li>
       <li>Have protein at breakfast: eggs or yoghurt.</li>
-      <li>Two cartons of apple juice a shop, not four. Water it down half and half.</li>
+      <li>No juice or fizzy drinks. Water or no-added-sugar squash.</li>
       <li>Keep a snack box in the car: fruit and a boiled egg.</li>
       <li>One treat a week from the shop (doughnut, brioche, biscuits), and one planned takeaway a month.</li>
-      <li>Log meals in MyNetDiary for 2 weeks to see your real portions.</li>
+      <li>Weigh in every Sunday morning and send it to Akọ̀wé.</li>
     </ol>
   </section>
 
@@ -538,6 +606,12 @@ const RECIPES = {
   'Chicken salad wrap or leftovers': ['1', ['1 tortilla wrap', 'Leftover chicken', 'Salad, tomato and cucumber', 'A little light salad cream'], ['Warm the wrap.', 'Fill with chicken, salad, tomato and cucumber.', 'Add a little salad cream and roll.']]
 };
 /*GEN-END*/
+// Weight plan (set 25 Oct 2026). Akọ̀wé adds a row each Sunday when Mo sends his weight.
+const GOAL = { from: new Date(2026, 9, 25), start: 114, by: new Date(2027, 6, 16), to: 85 };
+const CHECKPOINTS = [['Christmas', new Date(2026, 11, 25), 108], ['Mid-March', new Date(2027, 2, 14), 100], ['End of May', new Date(2027, 4, 30), 92], ['Your birthday', new Date(2027, 6, 16), 85]];
+const WEIGH = [['2026-10-25', 114]];
+// Mon/Wed/Fri strength, Sat long walk, Sun weigh-in.
+const TRAIN = ['Strength, 30 min', 'Walk, 10k steps', 'Strength, 30 min', 'Walk, 10k steps', 'Strength, 30 min', 'Long walk, 60 min', 'Weigh in, batch cook, rest'];
 
 (() => {
   const $ = id => document.getElementById(id);
@@ -551,7 +625,7 @@ const RECIPES = {
   const tabs = [...document.querySelectorAll('[role=tab]')];
   function showTab(id) { tabs.forEach(t => { const on = t.id === id; t.setAttribute('aria-selected', on); $(t.getAttribute('aria-controls')).hidden = !on; }); store.set('tab', id); }
   tabs.forEach(t => t.addEventListener('click', () => showTab(t.id)));
-  const hashTab = { week: 't-week', shop: 't-shop', sunday: 't-sun', plate: 't-plate', habits: 't-hab' }[location.hash.slice(1)];
+  const hashTab = { week: 't-week', shop: 't-shop', sunday: 't-sun', plate: 't-plate', habits: 't-hab', weight: 't-goal' }[location.hash.slice(1)];
   showTab(hashTab || store.get('tab', 't-week'));
 
   const now = new Date();
@@ -560,6 +634,7 @@ const RECIPES = {
   let ate = store.get('ate', {}), got = store.get('got', {});
   const tickSvg = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5 6.5 12 13 4.5" fill="none" stroke="var(--panel)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   const LBL = { b: 'Breakfast', l: 'Lunch', s: 'Snack', d: 'Dinner' };
+  const KCAL = { b: 400, l: 550, s: 250, d: 600 };
   const DN = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], DL = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
   function setWeek(w) {
@@ -589,13 +664,14 @@ const RECIPES = {
   }
   function renderMeals() {
     const day = plan.days[cur]; $('dayTitle').textContent = DL[cur];
+    $('today').innerHTML = `<span>2,000 kcal</span><span>130g protein</span><span>10k steps</span><span class="${cur % 2 === 0 && cur < 5 ? 'str' : ''}">${TRAIN[cur]}</span>`;
     $('meals').innerHTML = ''; let n = 0;
     ['b', 'l', 's', 'd'].forEach(k => {
       const m = day[k]; const what = m[0], how = k === 's' ? '' : m[1], isNew = k === 's' ? 0 : m[3], tag = k === 's' ? '' : m[4];
       const key = `${W}-${cur}${k}`; if (ate[key]) n++;
       const tags = (tag === 'batch' ? '<span class="tag batch">Batch</span>' : tag === 'treat' ? '<span class="tag treat">Treat</span>' : '') + (isNew ? '<span class="tag new">New</span>' : '');
       const el = document.createElement('div'); el.className = 'meal' + (ate[key] ? ' ate' : '');
-      el.innerHTML = `<div class="when">${LBL[k]}</div><div class="what">${what}${tags}</div><button class="tick" type="button" aria-pressed="${!!ate[key]}" aria-label="Mark ${LBL[k].toLowerCase()} as eaten">${tickSvg}</button><div class="how">${how}</div>`;
+      el.innerHTML = `<div class="when">${LBL[k]}<small>~${KCAL[k]} kcal</small></div><div class="what">${what}${tags}</div><button class="tick" type="button" aria-pressed="${!!ate[key]}" aria-label="Mark ${LBL[k].toLowerCase()} as eaten">${tickSvg}</button><div class="how">${how}</div>`;
       const r = RECIPES[what.replace(/ with dodo$/, '')];
       if (r) {
         const isA = what.startsWith(plan.A[0]), isB = what === plan.B[0];
@@ -704,6 +780,34 @@ const RECIPES = {
   $('streakAdd').onclick = () => { streak++; store.set('streak', streak); showStreak(); };
   $('streakReset').onclick = () => { streak = 0; store.set('streak', streak); showStreak(); };
   showStreak();
+
+  (function renderGoal() {
+    const day = 864e5, span = GOAL.by - GOAL.from;
+    const onTrack = d => GOAL.start - (GOAL.start - GOAL.to) * Math.min(1, Math.max(0, (d - GOAL.from) / span));
+    const pts = WEIGH.map(([d, kg]) => [new Date(d + 'T12:00'), kg]);
+    const [ld, lk] = pts[pts.length - 1];
+    $('gLatest').textContent = lk + 'kg';
+    $('gLatestS').textContent = fmtD(ld) + (pts.length > 1 ? ` · ${(GOAL.start - lk).toFixed(1)}kg off so far` : ' · your start');
+    $('gTarget').textContent = onTrack(now).toFixed(1) + 'kg';
+    $('gLeft').textContent = Math.max(0, lk - GOAL.to).toFixed(1) + 'kg';
+    const gap = lk - onTrack(ld), weeks = Math.ceil((GOAL.by - now) / (7 * day));
+    $('goalNote').textContent = (pts.length < 2 ? 'Day one. ' : gap <= 0.3 ? 'On track. ' : `${gap.toFixed(1)}kg behind the line. `) + `${weeks} weeks to go.`;
+    $('statWeight').textContent = `${lk} → 85kg`;
+    const X0 = 40, X1 = 625, Y0 = 15, Y1 = 220, lo = 80, hi = 116;
+    const x = d => X0 + (X1 - X0) * (d - GOAL.from) / span, y = kg => Y0 + (Y1 - Y0) * (hi - kg) / (hi - lo);
+    let g = '';
+    for (let kg = 85; kg <= 115; kg += 5) g += `<line class="gl" x1="${X0}" x2="${X1}" y1="${y(kg)}" y2="${y(kg)}"/><text x="${X0 - 6}" y="${y(kg) + 4}" text-anchor="end">${kg}</text>`;
+    for (let m = 0; m <= 9; m++) { const d = new Date(2026, 10 + m, 1); if (d > GOAL.by) break; g += `<text x="${x(d)}" y="${Y1 + 18}" text-anchor="middle">${d.toLocaleDateString('en-GB', { month: 'short' })}</text>`; }
+    g += `<line class="tl" x1="${x(GOAL.from)}" y1="${y(GOAL.start)}" x2="${x(GOAL.by)}" y2="${y(GOAL.to)}"/>`;
+    CHECKPOINTS.forEach(([, d, kg]) => { g += `<circle class="cp" cx="${x(d)}" cy="${y(kg)}" r="5"/>`; });
+    if (pts.length > 1) g += `<polyline class="ml" points="${pts.map(([d, kg]) => x(d) + ',' + y(kg)).join(' ')}"/>`;
+    pts.forEach(([d, kg]) => { g += `<circle class="me" cx="${x(d)}" cy="${y(kg)}" r="4.5"><title>${fmtD(d)}: ${kg}kg</title></circle>`; });
+    const tx = x(now); if (now > GOAL.from && now < GOAL.by) g += `<line x1="${tx}" x2="${tx}" y1="${Y0}" y2="${Y1}" stroke="var(--rule)" stroke-dasharray="2 4"/><text x="${tx}" y="${Y0 - 3}" text-anchor="middle">today</text>`;
+    $('wchart').innerHTML = g;
+    $('cps').innerHTML = CHECKPOINTS.map(([n, d, kg]) => `<li class="${lk <= kg ? 'hit' : ''}"><b>${kg}kg</b><span>${n}, ${fmtD(d)}${lk <= kg ? ' ✓' : ''}</span></li>`).join('');
+    const di = (now.getDay() + 6) % 7;
+    $('wk7').innerHTML = TRAIN.map((t, i) => `<div class="${i === di ? 'on' : ''}"><b>${DN[i]}</b><span>${t}</span></div>`).join('');
+  })();
 
   setWeek(W);
 })();
