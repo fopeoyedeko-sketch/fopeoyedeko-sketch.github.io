@@ -4,10 +4,10 @@
  "night_rate_p": 12.29,
  "standing_charge_p": 48.44,
  "fix_ends": "2027-07-25",
- "last_week_gbp": 24.29,
- "week_before_gbp": 18.59,
- "week_label": "10 Oct \u2013 16 Oct",
- "latest_day": "2026-10-16",
- "read_at": "2026-10-18T11:17+00:00",
+ "last_week_gbp": 19.08,
+ "week_before_gbp": 24.29,
+ "week_label": "17 Oct \u2013 23 Oct",
+ "latest_day": "2026-10-23",
+ "read_at": "2026-10-25T08:10+00:00",
  "tariff": "Octopus 12M Fixed July 2026 v2"
 }
