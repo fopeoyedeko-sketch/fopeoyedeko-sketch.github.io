@@ -550,9 +550,19 @@ function buildWeek(w) {
   const list = Object.entries(use).map(([k, u]) => { const [name, price, aisle, per] = ITEMS[k]; const packs = Math.max(1, Math.ceil(u / per)); return { k, name, aisle, shop: aisle === 'African shop' ? 'African shop' : 'Lidl', packs, cost: packs * price, pantry: PANTRY.includes(k), est: ESTIMATED.includes(k) }; });
   list.sort((a, b) => AISLES.indexOf(a.aisle) - AISLES.indexOf(b.aisle) || a.name.localeCompare(b.name));
   const total = list.reduce((s, i) => s + i.cost, 0), fresh = list.reduce((s, i) => s + (i.pantry ? 0 : i.cost), 0);
+  // What Mo actually ate, logged from his messages. Keyed 'week-day' (day 0 = Monday). Doesn't change the shopping list.
+  for (const [key, meals] of Object.entries(ATE)) { const [wk, dy] = key.split('-').map(Number); if (wk === w) Object.assign(days[dy], meals); }
   const extra = EXTRAS[w] || null;
   return { w, A, B, tr, days, list, total, fresh, extra };
 }
+const ATE = {
+  '0-0': {
+    b: ['Two tortilla wraps and a hot chocolate', 'About 580 kcal and 15g protein: over the 400 budget. Next time: one wrap with 2 scrambled eggs, and a light hot chocolate.', null, 0, 'logged'],
+    l: ['Jollof rice and chicken', 'Lunch box 1, with salad. About 600 kcal. One fist of jollof, chicken without the skin, the rest salad.', null, 0, 'logged'],
+    s: ['Fruit salad with yoghurt (2–3pm)', null],
+    d: ['Spicy sardine tomato spaghetti', 'Make dinner protein-heavy: the whole tin of sardines, a small fist of spaghetti, plus a boiled egg. About 550 kcal left today and about 65g protein to go.', { sardines: 1, spaghetti: 1, spinach: 1 }, 0]
+  }
+};
 function weekStart(w) { const d = new Date(START); d.setDate(START.getDate() + w * 7); return d; }
 // From Friday to Sunday you're shopping for next week.
 function defaultWeek(now) { const dow = now.getDay(), cur = Math.max(0, Math.floor((now - START) / (7 * 864e5))); return now >= START && (dow === 5 || dow === 6 || dow === 0) ? cur + 1 : cur; }
@@ -669,7 +679,7 @@ const TRAIN = ['Strength, 30 min', 'Walk, 10k steps', 'Strength, 30 min', 'Walk,
     ['b', 'l', 's', 'd'].forEach(k => {
       const m = day[k]; const what = m[0], how = k === 's' ? '' : m[1], isNew = k === 's' ? 0 : m[3], tag = k === 's' ? '' : m[4];
       const key = `${W}-${cur}${k}`; if (ate[key]) n++;
-      const tags = (tag === 'batch' ? '<span class="tag batch">Batch</span>' : tag === 'treat' ? '<span class="tag treat">Treat</span>' : '') + (isNew ? '<span class="tag new">New</span>' : '');
+      const tags = (tag === 'logged' ? '<span class="tag new">Logged</span>' : '') + (tag === 'batch' ? '<span class="tag batch">Batch</span>' : tag === 'treat' ? '<span class="tag treat">Treat</span>' : '') + (isNew ? '<span class="tag new">New</span>' : '');
       const el = document.createElement('div'); el.className = 'meal' + (ate[key] ? ' ate' : '');
       el.innerHTML = `<div class="when">${LBL[k]}<small>~${KCAL[k]} kcal</small></div><div class="what">${what}${tags}</div><button class="tick" type="button" aria-pressed="${!!ate[key]}" aria-label="Mark ${LBL[k].toLowerCase()} as eaten">${tickSvg}</button><div class="how">${how}</div>`;
       const r = RECIPES[what.replace(/ with dodo$/, '')];
