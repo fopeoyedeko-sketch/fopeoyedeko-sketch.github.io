@@ -498,11 +498,7 @@ const SNACK = [
 const EXTRAS = {
   0: ['Tonight: homemade burgers', 'Buy now. The 500g mince also covers Sunday\'s spag bol, so it\'s been taken off the main list.',
     [['Lean beef mince 5% fat, 500g', 3.29, 'Any shop', 1], ['Large white baps', 0.69, 'Any shop'], ['Little gem lettuce', 0.69, 'Any shop', 1], ['Salad tomatoes', 0.69, 'Any shop', 1], ['Red onions, 3 pack', 0.95, 'Any shop'], ['Sweet potato fries', 1.99, 'Any shop'], ['Cheese slices (optional)', 1.19, 'Any shop', 1]],
-    ['beefmince', 'berries', 'spinach']],
-  // Government "Be Ready" guidance (Oct 2026): 3 days of water and no-cook food per person.
-  1: ['Be Ready box (3 days, 1 person)', 'Government advice: 3 days of water and food that needs no cooking or fridge. Keep it in a cupboard and leave it unopened. Also keep about £50 in cash at home. Double it for 2 people.',
-    [['Still water, 6 × 2L', 1.79, 'Lidl', 1], ['Baked beans, 4 tins', 1.85, 'Lidl', 1], ['Sardines or mackerel in tomato, 2 tins', 1.40, 'Lidl', 1], ['Corned beef, 340g tin', 2.79, 'Lidl', 1], ['Tinned fruit in juice', 0.69, 'Lidl', 1], ['Cream crackers', 0.85, 'Lidl', 1], ['Peanut butter', 1.29, 'Lidl', 1], ['UHT milk, 1L', 0.95, 'Lidl', 1], ['Cereal bars', 1.19, 'Lidl', 1], ['Mixed nuts and raisins', 1.89, 'Lidl', 1], ['AA batteries', 2.99, 'Lidl', 1], ['LED torch', 3.99, 'Lidl or Poundland', 1], ['Basic first aid kit', 4.50, 'Boots or Superdrug', 1], ['Power bank (optional)', 12.00, 'Argos or Lidl', 1]],
-    []]
+    ['beefmince', 'berries', 'spinach']]
 };
 const START = new Date(2026, 9, 26); // Monday of week 1
 function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
